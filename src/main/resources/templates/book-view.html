@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vocabulary Book</title>
+    <link rel="stylesheet" href="/css/vocab.css" />
+</head>
+<body>
+<div class="page-container">
+    <header class="top-bar">
+        <a class="link-back" href="/bookshelf">← Back to Bookshelf</a>
+        <div class="progress-header" id="progressHeader">
+            <span>📚 Added Today: <strong id="addedTodayCount">0</strong></span>
+            <span>🔁 Reviewed Today: <strong id="reviewedTodayCount">0</strong></span>
+            <span>🔥 Streak: <strong id="streakCount">0 days</strong></span>
+            <button id="startDailyStudyBtn" class="btn-primary" type="button">▶ Start Daily Study</button>
+        </div>
+        <h1 id="bookTitle">Book</h1>
+    </header>
+    <div class="book-layout">
+        <aside class="left-panel">
+            <div class="search-row">
+                <input id="searchInput" class="search-input" placeholder="Search vocabulary..." />
+                <button id="toggleSelectBtn" class="btn-secondary" type="button">Select</button>
+            </div>
+            <div id="filterBar" class="filter-row" aria-label="Vocabulary filters">
+                <button class="filter-btn active" data-filter="all" type="button">All</button>
+                <button class="filter-btn" data-filter="new" type="button">New</button>
+                <button class="filter-btn" data-filter="difficult" type="button">Difficult</button>
+                <button class="filter-btn" data-filter="due" type="button">Due Today</button>
+                <button class="filter-btn" data-filter="mastered" type="button">Mastered</button>
+            </div>
+            <div id="selectActions" class="select-actions hidden">
+                <button id="deleteSelectedBtn" class="btn-secondary" type="button">Delete Selected (0)</button>
+            </div>
+            <ul id="vocabList" class="vocab-list"></ul>
+        </aside>
+
+        <section class="right-panel">
+            <div class="command-panel">
+                <button id="tabAdd" class="tab-btn active">Add New Words</button>
+                <button id="tabFlash" class="tab-btn">Flash Cards</button>
+                <button id="tabSpell" class="tab-btn">Spelling Quiz</button>
+                <button id="tabStats" class="tab-btn">Statistics</button>
+            </div>
+
+            <div id="toolArea" class="tool-area">
+                <div id="addSection" class="tool-section active">
+                    <h2>Add multiple words</h2>
+                    <textarea id="wordInput" class="word-input" placeholder="abandon 放弃\nability 能力\nabsorb 吸收"></textarea>
+                    <button id="saveWordsBtn" class="btn-primary">Save Words</button>
+                    <div class="user-guide">
+                        <p>📝 One line = one pair: <strong>word translation</strong></p>
+                        <p>✨ Example: <strong>ability 能力</strong></p>
+                        <p>💡 Tip: Use the left search to find words quickly after saving.</p>
+                    </div>
+                    <p class="hint">Each line: <code>word translation</code></p>
+                </div>
+
+                <div id="flashSection" class="tool-section">
+                    <h2>Flashcards</h2>
+                    <div id="dailySessionBanner" class="daily-session-banner hidden">
+                        <strong>Daily Study Session</strong>
+                        <p id="dailySessionProgressText" class="hint">Card 1 / 30</p>
+                        <div class="daily-session-track">
+                            <div id="dailySessionProgressBar" class="daily-session-fill"></div>
+                        </div>
+                    </div>
+                    <div class="flashcard" id="flashcard">
+                        <div id="flashTerm" class="flash-front">-</div>
+                        <div id="flashTranslation" class="flash-back hidden">-</div>
+                    </div>
+                    <div class="flash-control">
+                        <button id="prevCard">←</button>
+                        <button id="flipCard">Flip</button>
+                        <button id="nextCard">→</button>
+                    </div>
+                    <div class="flash-control">
+                        <button id="hardReview" class="btn-secondary">Hard</button>
+                        <button id="easyReview" class="btn-primary">Easy</button>
+                    </div>
+                    <p id="cardIndex" class="hint"></p>
+                    <div id="dailySessionComplete" class="daily-session-complete hidden">
+                        <h3>🎉 Daily Study Complete!</h3>
+                        <p id="dailySessionSummary" class="hint"></p>
+                        <p class="hint">Great job! Come back tomorrow to continue your streak.</p>
+                    </div>
+                </div>
+
+                <div id="spellSection" class="tool-section">
+                    <h2>Spelling Quiz</h2>
+                    <div class="spell-prompt-box">
+                        <p id="spellPrompt">Select a word from the list to start.</p>
+                    </div>
+                    <input id="spellInput" class="spell-input" placeholder="Type the English word..." />
+                    <button id="checkSpell" class="btn-primary">Check</button>
+                    <div class="flash-control">
+                        <button id="prevSpell">←</button>
+                        <button id="nextSpell">→</button>
+                    </div>
+                    <p id="spellIndex" class="hint"></p>
+                    <p id="spellFeedback" class="hint"></p>
+                </div>
+
+                <div id="statsSection" class="tool-section">
+                    <h2>Daily Statistics</h2>
+                    <div class="stats-graph-card">
+                        <div class="stats-graph-scroll">
+                            <svg id="statsGraph" class="stats-graph" viewBox="0 0 760 280" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="stats-legend">
+                            <span class="legend-item legend-reviewed">Reviewed</span>
+                            <span class="legend-item legend-added">Added</span>
+                        </div>
+                        <p id="statsHint" class="hint">Click a point to view the day’s exact values.</p>
+                        <div id="statsPointDetail" class="stats-point-detail hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="/js/bookpage.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Build output
+target/
+
+# Compiled class files
+*.class
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Maven wrapper
+.mvn/

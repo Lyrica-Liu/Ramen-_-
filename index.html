@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Habit Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header with Settings -->
+        <header class="app-header">
+            <div class="header-title">
+                <h1>My Day</h1>
+                <p class="header-quote">Every moment is a fresh opportunity</p>
+            </div>
+            <button class="settings-btn" id="settingsBtn" title="Settings">Settings</button>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-page="habits">Habits</button>
+            <button class="nav-tab" data-page="pomodoro">Pomodoro</button>
+            <button class="nav-tab" data-page="todo">Todo</button>
+            <button class="nav-tab" data-page="journal">Journal</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Habits Page -->
+            <div id="habits-page" class="page active">
+                <div class="week-calendar" id="weekCalendar"></div>
+                
+                <div class="add-habit-section">
+                    <input 
+                        type="text" 
+                        id="habitInput" 
+                        class="habit-input"
+                        placeholder="Add a new habit...">
+                    <button id="addBtn" class="btn-icon">+</button>
+                </div>
+
+                <div class="habits-list" id="habitsContainer">
+                    <!-- Habits will be inserted here -->
+                </div>
+
+                <div class="page-footer">
+                    <span id="completedCount">Completed: 0/0</span>
+                    <button id="nextDayBtn" class="btn-secondary">Next Day</button>
+                </div>
+            </div>
+
+            <!-- Pomodoro Page -->
+            <div id="pomodoro-page" class="page">
+                <div class="pomodoro-container">
+                    <div class="pomodoro-display">
+                        <div class="pomodoro-label" id="pomodoroLabel">Focus</div>
+                        <div class="pomodoro-timer" id="pomodoroTimer">25:00</div>
+                        <div class="pomodoro-session" id="pomodoroSession">Session 1/4</div>
+                    </div>
+
+                    <div class="pomodoro-controls">
+                        <button id="startPomodoroBtn" class="btn-pomodoro">Start</button>
+                        <button id="pausePomodoroBtn" class="btn-pomodoro" style="display:none;">Pause</button>
+                        <button id="resetPomodoroBtn" class="btn-pomodoro">Reset</button>
+                        <button id="toggleTimerSettingsBtn" class="btn-pomodoro">Timer Settings</button>
+                    </div>
+
+                    <div class="pomodoro-settings-inline hidden" id="timerSettingsPanel">
+                        <div class="settings-section">
+                            <div class="settings-header">
+                                <h3>Timer Settings</h3>
+                                <button id="hideTimerSettingsBtn" class="hide-settings-btn">Hide</button>
+                            </div>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label>Focus (min)</label>
+                                    <div class="input-group">
+                                        <button class="qty-btn" id="focusMinus">−</button>
+                                        <input type="number" id="focusDuration" class="qty-input" min="1" max="60" value="25">
+                                        <button class="qty-btn" id="focusPlus">+</button>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Short Break</label>
+                                    <div class="input-group">
+                                        <button class="qty-btn" id="shortBreakMinus">−</button>
+                                        <input type="number" id="shortBreakDuration" class="qty-input" min="1" max="30" value="5">
+                                        <button class="qty-btn" id="shortBreakPlus">+</button>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Long Break</label>
+                                    <div class="input-group">
+                                        <button class="qty-btn" id="longBreakMinus">−</button>
+                                        <input type="number" id="longBreakDuration" class="qty-input" min="1" max="60" value="15">
+                                        <button class="qty-btn" id="longBreakPlus">+</button>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Sessions</label>
+                                    <div class="input-group">
+                                        <button class="qty-btn" id="sessionsMinus">−</button>
+                                        <input type="number" id="sessionsPerCycle" class="qty-input" min="2" max="10" value="4">
+                                        <button class="qty-btn" id="sessionsPlus">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Todo Page -->
+            <div id="todo-page" class="page">
+                <div class="todo-header">
+                    <div class="todo-input-group">
+                        <input 
+                            type="text" 
+                            id="todoInput" 
+                            class="habit-input"
+                            placeholder="Add a new task...">
+                        <select id="todoPriority" class="priority-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <button id="addTodoBtn" class="btn-icon">+</button>
+                </div>
+                <div class="todo-list" id="todoContainer">
+                    <!-- Todos will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Journal Page -->
+            <div id="journal-page" class="page">
+                <div class="journal-header" id="journalDate"></div>
+                <textarea 
+                    id="journalInput" 
+                    class="journal-textarea"
+                    placeholder="Write your thoughts and reflections..."></textarea>
+                <button id="saveJournalBtn" class="btn-primary">Save Entry</button>
+                <div id="journalEntries" class="journal-entries"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Todo Details Modal -->
+    <div id="todoDetailsModal" class="modal hidden">
+        <div class="modal-content modal-details">
+            <div class="modal-header">
+                <h2 id="todoDetailsName">Task Details</h2>
+                <button class="close-btn" id="closeTodoDetails"></button>
+            </div>
+            
+            <div class="modal-body">
+                <textarea 
+                    id="todoDetailsText" 
+                    class="journal-textarea"
+                    placeholder="Add notes or details for this task..."></textarea>
+                <div class="subtasks-section">
+                    <h4>Subtasks</h4>
+                    <div class="subtasks-list" id="subtasksList"></div>
+                    <div class="add-subtask">
+                        <input type="text" id="addSubtaskInput" placeholder="Add a subtask...">
+                        <button id="addSubtaskBtn" class="btn-icon">+</button>
+                    </div>
+                </div>
+                <button id="saveTodoDetails" class="btn-primary">Save Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Habit Details Modal -->
+    <div id="habitDetailsModal" class="modal hidden">
+        <div class="modal-content modal-details">
+            <div class="modal-header">
+                <h2 id="habitDetailsName">Habit Details</h2>
+                <button class="close-btn" id="closeDetails"></button>
+            </div>
+            
+            <div class="modal-body">
+                <label for="habitGoalInput">Daily Goal (days):</label>
+                <input 
+                    type="number" 
+                    id="habitGoalInput" 
+                    class="qty-input"
+                    min="1" 
+                    max="365" 
+                    value="30">
+                <textarea 
+                    id="habitDetailsText" 
+                    class="journal-textarea"
+                    placeholder="Write a short description or explanation for this habit..."></textarea>
+                <button id="saveDetailsBtn" class="btn-primary">Save Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pomodoro Settings Modal (kept for header button, but inline settings replace it) -->
+    <div id="pomodoroSettingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Timer Settings</h2>
+                <button class="close-btn" id="closePomodoroSettings"></button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Pomodoro Timer</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Focus Duration (minutes)</label>
+                            <div class="input-group">
+                                <button class="qty-btn" id="focusMinus">−</button>
+                                <input type="number" id="focusDuration" class="qty-input" min="1" max="60" value="25">
+                                <button class="qty-btn" id="focusPlus">+</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Short Break (minutes)</label>
+                            <div class="input-group">
+                                <button class="qty-btn" id="shortBreakMinus">−</button>
+                                <input type="number" id="shortBreakDuration" class="qty-input" min="1" max="30" value="5">
+                                <button class="qty-btn" id="shortBreakPlus">+</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Long Break (minutes)</label>
+                            <div class="input-group">
+                                <button class="qty-btn" id="longBreakMinus">−</button>
+                                <input type="number" id="longBreakDuration" class="qty-input" min="1" max="60" value="15">
+                                <button class="qty-btn" id="longBreakPlus">+</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Sessions Before Long Break</label>
+                            <div class="input-group">
+                                <button class="qty-btn" id="sessionsMinus">−</button>
+                                <input type="number" id="sessionsPerCycle" class="qty-input" min="2" max="10" value="4">
+                                <button class="qty-btn" id="sessionsPlus">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="closeSettings"></button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Color Theme Section -->
+                <div class="settings-section">
+                    <h3>Color Theme</h3>
+                    <div class="color-themes-visual">
+                        <button class="theme-swatch" data-theme="light" title="Light"></button>
+                        <button class="theme-swatch" data-theme="dark" title="Dark"></button>
+                        <button class="theme-swatch" data-theme="blue" title="Soft Blue"></button>
+                        <button class="theme-swatch" data-theme="pink" title="Soft Pink"></button>
+                        <button class="theme-swatch" data-theme="green" title="Soft Green"></button>
+                        <button class="theme-swatch" data-theme="yellow" title="Soft Yellow"></button>
+                        <button class="theme-swatch" data-theme="purple" title="Purple"></button>
+                        <button class="theme-swatch" data-theme="orange" title="Orange"></button>
+                        <button class="theme-swatch" data-theme="teal" title="Teal"></button>
+                        <button class="theme-swatch" data-theme="red" title="Red"></button>
+                    </div>
+                </div>
+
+                <!-- Statistics Section -->
+                <div class="settings-section">
+                    <h3>Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalHabits">0</div>
+                            <div class="stat-label">Total Habits</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalCompleted">0</div>
+                            <div class="stat-label">Total Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgCompletion">0%</div>
+                            <div class="stat-label">Avg Completion</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="journalCount">0</div>
+                            <div class="stat-label">Journal Entries</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
