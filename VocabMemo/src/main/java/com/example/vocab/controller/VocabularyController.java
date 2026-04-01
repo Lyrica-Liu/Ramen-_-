@@ -1,5 +1,6 @@
 package com.example.vocab.controller;
 
+import com.example.vocab.dto.PageResponse;
 import com.example.vocab.model.Word;
 import com.example.vocab.service.ProgressService;
 import com.example.vocab.service.VocabularyService;
@@ -85,7 +86,19 @@ public class VocabularyController {
     }
 
     @GetMapping
-    public List<Word> getWords(@PathVariable("bookId") Long bookId) {
+    public PageResponse<Word> getWords(
+            @PathVariable("bookId") Long bookId,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size
+    ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 20;
+        if (size > 200) size = 200;
+        return vocabularyService.listWordsPaged(bookId, page, size);
+    }
+
+    @GetMapping("/all")
+    public List<Word> getAllWords(@PathVariable("bookId") Long bookId) {
         return vocabularyService.listWords(bookId);
     }
 

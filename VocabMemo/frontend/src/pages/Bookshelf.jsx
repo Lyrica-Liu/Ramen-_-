@@ -9,34 +9,34 @@ import ContextMenu from '../components/ContextMenu';
 const Container = styled.div`
   max-width: 1240px;
   margin: 0 auto;
-  padding: 40px 28px;
+  padding: 48px 32px;
 `;
 
 const Title = styled.h1`
   font-size: 1.8rem;
   font-weight: 700;
   color: ${p => p.theme.text};
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 18px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 22px;
+  margin-bottom: 32px;
 `;
 
 const BookCard = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 24px 18px;
+  padding: 28px 22px;
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.12s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(148, 168, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
   }
 
   h3 {
@@ -49,7 +49,7 @@ const BookCard = styled.div`
 
   p {
     font-size: 0.85rem;
-    color: #9ca3af;
+    color: ${p => p.theme.muted};
   }
 `;
 
@@ -58,7 +58,7 @@ const CreateBtn = styled.button`
   color: #fff;
   border: none;
   border-radius: ${p => p.theme.radius};
-  padding: 12px 28px;
+  padding: 14px 32px;
   font-weight: 600;
   font-size: 1rem;
   transition: background 0.15s, transform 0.1s;
@@ -70,25 +70,25 @@ const CreateBtn = styled.button`
 `;
 
 const Guide = styled.div`
-  margin-top: 36px;
+  margin-top: 40px;
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 22px 24px;
+  padding: 26px 28px;
   line-height: 1.8;
 
   h3 {
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   ul {
-    padding-left: 20px;
+    padding-left: 22px;
   }
 
   li {
-    color: #6b7280;
+    color: ${p => p.theme.textSecondary};
     font-size: 0.95rem;
   }
 `;

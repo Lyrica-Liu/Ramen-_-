@@ -5,22 +5,22 @@ const Section = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 22px 24px;
+  padding: 26px 28px;
 `;
 
 const Heading = styled.h2`
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   color: ${p => p.theme.text};
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
-  min-height: 140px;
-  padding: 12px;
+  min-height: 150px;
+  padding: 14px;
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   resize: vertical;
   font-size: 0.95rem;
   line-height: 1.6;
@@ -33,8 +33,8 @@ const TextArea = styled.textarea`
 `;
 
 const SaveBtn = styled.button`
-  margin-top: 12px;
-  padding: 10px 28px;
+  margin-top: 14px;
+  padding: 12px 32px;
   background: ${p => p.theme.primary};
   color: #fff;
   border: none;
@@ -48,9 +48,9 @@ const SaveBtn = styled.button`
 `;
 
 const Hint = styled.p`
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: 0.88rem;
-  color: #9ca3af;
+  color: ${p => p.theme.muted};
   line-height: 1.7;
 `;
 

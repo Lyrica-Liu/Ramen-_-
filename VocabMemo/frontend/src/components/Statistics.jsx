@@ -7,7 +7,7 @@ import * as api from '../api';
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 `;
 
 const GraphScroll = styled.div`
@@ -15,15 +15,15 @@ const GraphScroll = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 16px;
+  padding: 20px;
 `;
 
 const Legend = styled.div`
   display: flex;
-  gap: 18px;
+  gap: 22px;
   justify-content: center;
   font-size: 0.88rem;
-  color: #6b7280;
+  color: ${p => p.theme.textSecondary};
 `;
 
 const Dot = styled.span`
@@ -38,15 +38,15 @@ const Dot = styled.span`
 
 const Hint = styled.div`
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: ${p => p.theme.muted};
   text-align: center;
 `;
 
 const PointDetail = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
-  padding: 12px 18px;
+  border-radius: ${p => p.theme.radiusSm};
+  padding: 14px 20px;
   font-size: 0.92rem;
   color: ${p => p.theme.text};
 
@@ -127,8 +127,8 @@ export default function Statistics({ bookId }) {
               const y = toY(v);
               return (
                 <g key={`yt-${i}`}>
-                  <line x1={pad.left} y1={y} x2={pad.left + plotW} y2={y} stroke="#e8ecfb" />
-                  <text x={pad.left - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#6b7280">
+                  <line x1={pad.left} y1={y} x2={pad.left + plotW} y2={y} stroke="#e2e8f0" />
+                  <text x={pad.left - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#64748b">
                     {v}
                   </text>
                 </g>
@@ -136,18 +136,18 @@ export default function Statistics({ bookId }) {
             })}
 
             {/* Axes */}
-            <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + plotH} stroke="#cfd8f7" />
+            <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + plotH} stroke="#cbd5e1" />
             <line
               x1={pad.left}
               y1={pad.top + plotH}
               x2={pad.left + plotW}
               y2={pad.top + plotH}
-              stroke="#cfd8f7"
+              stroke="#cbd5e1"
             />
 
             {/* Lines */}
-            <polyline fill="none" stroke="#6f8dff" strokeWidth="3" points={reviewedPts} />
-            <polyline fill="none" stroke="#6cc8a1" strokeWidth="3" points={addedPts} />
+            <polyline fill="none" stroke="#6366f1" strokeWidth="3" points={reviewedPts} />
+            <polyline fill="none" stroke="#34d399" strokeWidth="3" points={addedPts} />
 
             {/* Dots */}
             {stats.map((s, i) => (
@@ -156,7 +156,7 @@ export default function Statistics({ bookId }) {
                   cx={toX(i)}
                   cy={toY(s.reviewedCount)}
                   r="4.5"
-                  fill="#6f8dff"
+                  fill="#6366f1"
                   style={{ cursor: 'pointer' }}
                   onClick={e => handleDotClick(e, i, 'reviewed')}
                 />
@@ -164,7 +164,7 @@ export default function Statistics({ bookId }) {
                   cx={toX(i)}
                   cy={toY(s.addedCount)}
                   r="4.5"
-                  fill="#6cc8a1"
+                  fill="#34d399"
                   style={{ cursor: 'pointer' }}
                   onClick={e => handleDotClick(e, i, 'added')}
                 />
@@ -181,19 +181,19 @@ export default function Statistics({ bookId }) {
                   y={height - 18}
                   textAnchor="middle"
                   fontSize="11"
-                  fill="#6b7280"
+                  fill="#64748b"
                 >
                   {s.date.slice(5)}
                 </text>
               );
             })}
 
-            <text x="12" y="18" fontSize="11" fill="#6b7280">
+            <text x="12" y="18" fontSize="11" fill="#64748b">
               Words
             </text>
           </svg>
         ) : (
-          <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+          <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
             {hint || 'Loading…'}
           </div>
         )}
@@ -202,10 +202,10 @@ export default function Statistics({ bookId }) {
       {stats.length > 0 && (
         <Legend>
           <span>
-            <Dot color="#6f8dff" /> Reviewed
+            <Dot color="#6366f1" /> Reviewed
           </span>
           <span>
-            <Dot color="#6cc8a1" /> Added
+            <Dot color="#34d399" /> Added
           </span>
         </Legend>
       )}

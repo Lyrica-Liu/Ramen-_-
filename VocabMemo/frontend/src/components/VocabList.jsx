@@ -7,16 +7,16 @@ const Panel = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 14px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   max-height: 78vh;
 `;
 
 const SearchRow = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
 `;
@@ -24,9 +24,9 @@ const SearchRow = styled.div`
 const SearchInput = styled.input`
   flex: 1;
   min-width: 100px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   outline: none;
   font-size: 0.95rem;
   background: #fff;
@@ -37,22 +37,22 @@ const SearchInput = styled.input`
 `;
 
 const SelectBtn = styled.button`
-  padding: 7px 16px;
+  padding: 8px 18px;
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   background: ${p => (p.$active ? p.theme.primary : '#fff')};
   color: ${p => (p.$active ? '#fff' : p.theme.text)};
   font-size: 0.88rem;
   font-weight: 600;
 
   &:hover {
-    background: ${p => (p.$active ? p.theme.primaryStrong : '#f3f4f6')};
+    background: ${p => (p.$active ? p.theme.primaryStrong : p.theme.btnHover)};
   }
 `;
 
 const FilterBar = styled.div`
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   padding-bottom: 2px;
 
@@ -62,31 +62,31 @@ const FilterBar = styled.div`
 `;
 
 const FilterBtn = styled.button`
-  padding: 5px 14px;
+  padding: 6px 16px;
   border: 1.5px solid ${p => (p.$active ? p.theme.primary : p.theme.border)};
   border-radius: 999px;
-  background: ${p => (p.$active ? '#e9efff' : '#fff')};
-  color: ${p => (p.$active ? p.theme.primaryStrong : '#6b7280')};
+  background: ${p => (p.$active ? p.theme.selectedItem : '#fff')};
+  color: ${p => (p.$active ? p.theme.primaryStrong : p.theme.textSecondary)};
   font-size: 0.88rem;
   font-weight: 500;
   white-space: nowrap;
 
   &:hover {
-    background: ${p => (p.$active ? '#dde5ff' : '#f3f4f6')};
+    background: ${p => (p.$active ? p.theme.selectedItem : p.theme.btnHover)};
   }
 `;
 
 const SelectActions = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const DeleteSelBtn = styled.button`
-  padding: 6px 14px;
-  border: 1.5px solid #fca5a5;
-  border-radius: 10px;
-  background: #fef2f2;
-  color: #ef4444;
+  padding: 8px 16px;
+  border: 1.5px solid ${p => p.theme.hardBorder};
+  border-radius: ${p => p.theme.radiusSm};
+  background: ${p => p.theme.hardBg};
+  color: ${p => p.theme.hardText};
   font-size: 0.88rem;
   font-weight: 600;
 
@@ -117,10 +117,20 @@ const ListContainer = styled.ul`
 const VocabItem = styled.li`
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 0;
   cursor: pointer;
+
+  &:first-child {
+    border-radius: ${p => p.theme.radiusXs} ${p => p.theme.radiusXs} 0 0;
+  }
+  &:last-child {
+    border-radius: 0 0 ${p => p.theme.radiusXs} ${p => p.theme.radiusXs};
+  }
+  &:first-child:last-child {
+    border-radius: ${p => p.theme.radiusXs};
+  }
   font-size: 0.95rem;
   transition: background 0.12s, transform 0.1s;
   background: ${p => {
@@ -141,7 +151,7 @@ const VocabItem = styled.li`
   `}
 
   &:hover {
-    background: ${p => (p.$active ? p.theme.activeItem : '#f3f4f6')};
+    background: ${p => (p.$active ? p.theme.activeItem : p.theme.btnHover)};
   }
 
   span:first-child {
@@ -150,7 +160,7 @@ const VocabItem = styled.li`
   }
 
   span:last-child {
-    color: #6b7280;
+    color: ${p => p.theme.textSecondary};
   }
 `;
 

@@ -6,14 +6,14 @@ import styled from 'styled-components';
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 `;
 
 const PromptBox = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 30px 24px;
+  padding: 36px 28px;
   text-align: center;
   font-size: 1.2rem;
   font-weight: 600;
@@ -26,14 +26,14 @@ const PromptBox = styled.div`
 
 const InputRow = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
 `;
 
 const SpellInput = styled.input`
   flex: 1;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   outline: none;
   font-size: 1rem;
   background: #fff;
@@ -48,11 +48,11 @@ const SpellInput = styled.input`
 `;
 
 const CheckBtn = styled.button`
-  padding: 10px 22px;
+  padding: 12px 26px;
   background: ${p => p.theme.primary};
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
 
   &:hover:not(:disabled) {
@@ -67,22 +67,22 @@ const CheckBtn = styled.button`
 
 const NavRow = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   align-items: center;
 `;
 
 const NavBtn = styled.button`
-  padding: 8px 18px;
-  background: #eef1fb;
+  padding: 10px 22px;
+  background: ${p => p.theme.btnBg};
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
   font-size: 0.92rem;
   color: ${p => p.theme.text};
 
   &:hover:not(:disabled) {
-    background: #e0e5f6;
+    background: ${p => p.theme.btnHover};
     transform: translateY(-1px);
   }
 
@@ -94,7 +94,7 @@ const NavBtn = styled.button`
 
 const SpellIndex = styled.div`
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: ${p => p.theme.muted};
   text-align: center;
 `;
 

@@ -1,8 +1,12 @@
 package com.example.vocab.service;
 
+import com.example.vocab.dto.PageResponse;
 import com.example.vocab.model.VocabularyBook;
 import com.example.vocab.model.Word;
 import com.example.vocab.repository.WordRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -84,6 +88,46 @@ public class VocabularyService {
         }
 
         return words;
+    }
+
+    public PageResponse<Word> listWordsPaged(Long bookId, int page, int size) {
+        PageRequest pageable = PageRequest.of(page - 1, size, Sort.by("position").ascending());
+        Page<Word> result = wordRepository.findByBookId(bookId, pageable);
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean changed = false;
+        List<Word> content = result.getContent();
+        for (Word word : content) {
+            if (word.getReviewLevel() == null || word.getReviewLevel() < 1) {
+                word.setReviewLevel(1);
+                changed = true;
+            }
+            if (word.getNextReviewTime() == null) {
+                word.setNextReviewTime(now);
+                changed = true;
+            }
+            if (word.getCreatedTime() == null) {
+                word.setCreatedTime(now);
+                changed = true;
+            }
+            if (word.getLevelProgressDate() == null) {
+                word.setLevelProgressDate(now.toLocalDate());
+                changed = true;
+            }
+            if (word.getLevelProgressCount() == null) {
+                word.setLevelProgressCount(0);
+                changed = true;
+            }
+            if (word.getDifficultyScore() == null) {
+                word.setDifficultyScore(0);
+                changed = true;
+            }
+        }
+        if (changed) {
+            wordRepository.saveAll(content);
+        }
+
+        return new PageResponse<>(content, result.getTotalElements(), page, size);
     }
 
     public List<Word> addWords(Long bookId, List<Word> words) {

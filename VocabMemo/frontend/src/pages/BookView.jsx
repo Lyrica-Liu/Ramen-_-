@@ -14,19 +14,19 @@ import Statistics from '../components/Statistics';
 const Container = styled.div`
   max-width: 1240px;
   margin: 0 auto;
-  padding: 18px 28px 40px;
+  padding: 24px 32px 48px;
 `;
 
 const TopBar = styled.div`
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 12px;
+  gap: 20px;
+  margin-bottom: 16px;
 
   @media (max-width: 920px) {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 `;
 
@@ -43,10 +43,10 @@ const BackLink = styled(Link)`
 const ProgressRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   justify-content: center;
   font-size: 0.95rem;
-  color: #6b7280;
+  color: ${p => p.theme.textSecondary};
   flex-wrap: wrap;
 
   strong {
@@ -60,7 +60,7 @@ const DailyBtn = styled.button`
   color: #fff;
   border: none;
   border-radius: ${p => p.theme.radius};
-  padding: 8px 18px;
+  padding: 10px 22px;
   font-weight: 600;
   font-size: 0.92rem;
   white-space: nowrap;
@@ -75,13 +75,13 @@ const BookTitle = styled.h1`
   font-size: 1.8rem;
   font-weight: 700;
   color: ${p => p.theme.text};
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 `;
 
 const Layout = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 22px;
+  gap: 26px;
 
   @media (max-width: 920px) {
     grid-template-columns: 1fr;
@@ -94,23 +94,23 @@ const RightPanel = styled.div`
 
 const TabBar = styled.div`
   display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 20px;
 `;
 
 const TabBtn = styled.button`
   flex: 1;
-  padding: 10px 8px;
-  background: ${p => (p.$active ? p.theme.primary : '#eef1fb')};
+  padding: 12px 10px;
+  background: ${p => (p.$active ? p.theme.primary : p.theme.btnBg)};
   color: ${p => (p.$active ? '#fff' : p.theme.text)};
   border: none;
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
   font-size: 0.92rem;
   transition: background 0.15s;
 
   &:hover {
-    background: ${p => (p.$active ? p.theme.primaryStrong : '#e0e5f6')};
+    background: ${p => (p.$active ? p.theme.primaryStrong : p.theme.btnHover)};
   }
 `;
 
@@ -226,6 +226,14 @@ export default function BookView() {
         return (
           item.term.toLowerCase().includes(q) || item.translation.toLowerCase().includes(q)
         );
+      })
+      .sort((a, b) => {
+        // Group: low (level 1-2) = 0, mid (level 3-4) = 1, high (level 5+) = 2
+        const groupOf = lvl => (lvl <= 2 ? 0 : lvl <= 4 ? 1 : 2);
+        const gA = groupOf(a.reviewLevel || 1);
+        const gB = groupOf(b.reviewLevel || 1);
+        if (gA !== gB) return gA - gB;
+        return a.term.localeCompare(b.term, undefined, { sensitivity: 'base' });
       });
   }, [words, searchText, matchesFilter]);
 

@@ -6,25 +6,25 @@ const Menu = styled.div`
   z-index: 1000;
   background: #fff;
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
-  padding: 6px 0;
-  min-width: 160px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border-radius: ${p => p.theme.radiusSm};
+  padding: 8px 0;
+  min-width: 170px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 `;
 
 const MenuItem = styled.button`
   display: block;
   width: 100%;
-  padding: 9px 18px;
+  padding: 10px 20px;
   border: none;
   background: none;
   text-align: left;
   font-size: 0.95rem;
-  color: ${p => (p.$danger ? '#ef4444' : p.theme.text)};
+  color: ${p => (p.$danger ? p.theme.dangerText : p.theme.text)};
   cursor: pointer;
 
   &:hover {
-    background: ${p => (p.$danger ? '#fef2f2' : '#f3f4f6')};
+    background: ${p => (p.$danger ? p.theme.dangerBg : p.theme.btnHover)};
   }
 `;
 

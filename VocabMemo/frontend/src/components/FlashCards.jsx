@@ -5,33 +5,33 @@ import styled from 'styled-components';
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 `;
 
 const Banner = styled.div`
-  background: #eef3ff;
+  background: ${p => p.theme.bannerBg};
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
-  padding: 10px 16px;
+  border-radius: ${p => p.theme.radiusSm};
+  padding: 12px 20px;
   font-size: 0.9rem;
   color: ${p => p.theme.text};
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 `;
 
 const ProgressTrack = styled.div`
   flex: 1;
   height: 7px;
-  background: #dde3f7;
-  border-radius: 6px;
+  background: ${p => p.theme.progressTrack};
+  border-radius: 8px;
   overflow: hidden;
 `;
 
 const ProgressFill = styled.div`
   height: 100%;
-  background: linear-gradient(90deg, #6f8dff, #6cc8a1);
-  border-radius: 6px;
+  background: linear-gradient(90deg, ${p => p.theme.progressGradient[0]}, ${p => p.theme.progressGradient[1]});
+  border-radius: 8px;
   transition: width 0.3s ease;
   width: ${p => p.$percent}%;
 `;
@@ -40,12 +40,12 @@ const CardContainer = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 22px 24px;
+  padding: 28px 28px;
   text-align: center;
 `;
 
 const FlashCard = styled.div`
-  min-height: 220px;
+  min-height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,33 +61,33 @@ const Term = styled.div`
 
 const Translation = styled.div`
   font-size: 1.1rem;
-  color: #6b7280;
+  color: ${p => p.theme.textSecondary};
 `;
 
 const Message = styled.div`
   font-size: 1.1rem;
-  color: #9ca3af;
+  color: ${p => p.theme.muted};
 `;
 
 const NavRow = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   align-items: center;
-  margin-top: 6px;
+  margin-top: 8px;
 `;
 
 const NavBtn = styled.button`
-  padding: 8px 18px;
-  background: #eef1fb;
+  padding: 10px 22px;
+  background: ${p => p.theme.btnBg};
   border: 1.5px solid ${p => p.theme.border};
-  border-radius: 10px;
+  border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
   font-size: 0.92rem;
   color: ${p => p.theme.text};
 
   &:hover:not(:disabled) {
-    background: #e0e5f6;
+    background: ${p => p.theme.btnHover};
     transform: translateY(-1px);
   }
 
@@ -99,42 +99,42 @@ const NavBtn = styled.button`
 
 const ReviewRow = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 6px;
 `;
 
 const HardBtn = styled(NavBtn)`
-  background: #fff0ed;
-  border-color: #fca5a5;
-  color: #ef4444;
+  background: ${p => p.theme.hardBg};
+  border-color: ${p => p.theme.hardBorder};
+  color: ${p => p.theme.hardText};
 
   &:hover:not(:disabled) {
-    background: #fee2e2;
+    background: ${p => p.theme.hardHover};
   }
 `;
 
 const EasyBtn = styled(NavBtn)`
-  background: #ecfdf5;
-  border-color: #86efac;
-  color: #16a34a;
+  background: ${p => p.theme.easyBg};
+  border-color: ${p => p.theme.easyBorder};
+  color: ${p => p.theme.easyText};
 
   &:hover:not(:disabled) {
-    background: #d1fae5;
+    background: ${p => p.theme.easyHover};
   }
 `;
 
 const CardIndex = styled.div`
   font-size: 0.85rem;
-  color: #9ca3af;
-  margin-top: 8px;
+  color: ${p => p.theme.muted};
+  margin-top: 10px;
 `;
 
 const CompleteBox = styled.div`
-  background: #f0fdf4;
-  border: 1.5px solid #86efac;
+  background: ${p => p.theme.completeBg};
+  border: 1.5px solid ${p => p.theme.completeBorder};
   border-radius: ${p => p.theme.radius};
-  padding: 20px 24px;
+  padding: 24px 28px;
   text-align: center;
   font-size: 0.95rem;
   line-height: 1.8;

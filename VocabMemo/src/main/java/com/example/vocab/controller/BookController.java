@@ -1,10 +1,12 @@
 package com.example.vocab.controller;
 
+import com.example.vocab.model.Book;
 import com.example.vocab.model.VocabularyBook;
 import com.example.vocab.service.BookService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -13,8 +15,19 @@ import java.util.List;
 public class BookController {
     private final BookService bookService;
 
+    private final List<Book> books = new ArrayList<>(List.of(
+        new Book(1L, "Spring in Action"),
+        new Book(2L, "Clean Code"),
+        new Book(3L, "Effective Java")
+    ));
+
     public BookController(BookService bookService) {
         this.bookService = bookService;
+    }
+
+    @GetMapping("/list")
+    public List<Book> getBookList() {
+        return books;
     }
 
     @GetMapping
