@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "start": "npx serve -s dist"
+  "build": "vite build",
+  "start": "npm install && npm run build && npx serve -s dist"
   },
   "dependencies": {
   "serve": "^14.2.0",
