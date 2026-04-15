@@ -14,7 +14,11 @@ import Statistics from '../components/Statistics';
 const Container = styled.div`
   max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 32px 48px;
+  padding: 20px 28px 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 `;
 
 const TopBar = styled.div`
@@ -22,7 +26,9 @@ const TopBar = styled.div`
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid ${p => p.theme.border};
 
   @media (max-width: 920px) {
     grid-template-columns: 1fr;
@@ -56,32 +62,41 @@ const ProgressRow = styled.div`
 `;
 
 const DailyBtn = styled.button`
-  background: ${p => p.theme.primary};
+  background: linear-gradient(135deg, ${p => p.theme.primary} 0%, ${p => p.theme.primaryStrong} 100%);
   color: #fff;
   border: none;
-  border-radius: ${p => p.theme.radius};
+  border-radius: ${p => p.theme.radiusSm};
   padding: 10px 22px;
   font-weight: 600;
   font-size: 0.92rem;
   white-space: nowrap;
+  transition: all 0.18s ease;
 
   &:hover {
-    background: ${p => p.theme.primaryStrong};
     transform: translateY(-1px);
+    box-shadow: ${p => p.theme.shadowPrimary};
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const BookTitle = styled.h1`
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: ${p => p.theme.text};
-  margin-bottom: 22px;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  flex-shrink: 0;
 `;
 
 const Layout = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 26px;
+  flex: 1;
+  min-height: 0;
 
   @media (max-width: 920px) {
     grid-template-columns: 1fr;
@@ -90,27 +105,184 @@ const Layout = styled.div`
 
 const RightPanel = styled.div`
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 const TabBar = styled.div`
   display: flex;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+`;
+
+const TabContent = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 `;
 
 const TabBtn = styled.button`
   flex: 1;
-  padding: 12px 10px;
-  background: ${p => (p.$active ? p.theme.primary : p.theme.btnBg)};
-  color: ${p => (p.$active ? '#fff' : p.theme.text)};
+  padding: 11px 10px;
+  background: ${p => (p.$active
+    ? `linear-gradient(135deg, ${p.theme.primary} 0%, ${p.theme.primaryStrong} 100%)`
+    : p.theme.panel)};
+  color: ${p => (p.$active ? '#fff' : p.theme.textSecondary)};
+  border: 1px solid ${p => (p.$active ? 'transparent' : p.theme.border)};
+  border-radius: ${p => p.theme.radiusSm};
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.16s ease;
+  box-shadow: ${p => (p.$active ? p.theme.shadowPrimary : p.theme.shadow)};
+
+  &:hover {
+    background: ${p => (p.$active
+      ? `linear-gradient(135deg, ${p.theme.primaryStrong} 0%, #3730a3 100%)`
+      : p.theme.btnHover)};
+    color: ${p => (p.$active ? '#fff' : p.theme.text)};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+/* ─── daily study layout ─── */
+
+const DailyLayout = styled.div`
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 24px;
+`;
+
+const DailyTitleBlock = styled.div``;
+
+const DailyTitleText = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: ${p => p.theme.text};
+`;
+
+const DailyPhase = styled.div`
+  font-size: 0.85rem;
+  color: ${p => p.theme.muted};
+  margin-top: 2px;
+`;
+
+const ExitDailyBtn = styled.button`
+  padding: 8px 18px;
+  background: ${p => p.theme.panel};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radiusSm};
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: ${p => p.theme.textSecondary};
+  transition: all 0.16s ease;
+
+  &:hover {
+    background: ${p => p.theme.btnHover};
+    border-color: ${p => p.theme.borderStrong};
+    color: ${p => p.theme.text};
+  }
+`;
+
+const QuizPromptBox = styled.div`
+  margin-top: 20px;
+  background: ${p => p.theme.panel};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radius};
+  padding: 36px 40px;
+  text-align: center;
+  box-shadow: ${p => p.theme.shadow};
+`;
+
+const QuizPromptTitle = styled.div`
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: ${p => p.theme.text};
+  margin-bottom: 8px;
+`;
+
+const QuizPromptSub = styled.div`
+  font-size: 0.93rem;
+  color: ${p => p.theme.textSecondary};
+  margin-bottom: 28px;
+`;
+
+const QuizPromptBtns = styled.div`
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+`;
+
+const StartQuizBtn = styled.button`
+  padding: 13px 30px;
+  background: linear-gradient(135deg, ${p => p.theme.primary}, ${p => p.theme.primaryStrong});
+  color: #fff;
   border: none;
   border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
-  font-size: 0.92rem;
-  transition: background 0.15s;
+  font-size: 0.97rem;
+  transition: all 0.16s ease;
 
   &:hover {
-    background: ${p => (p.$active ? p.theme.primaryStrong : p.theme.btnHover)};
+    transform: translateY(-1px);
+    box-shadow: ${p => p.theme.shadowPrimary};
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const SkipQuizBtn = styled.button`
+  padding: 13px 30px;
+  background: ${p => p.theme.panel};
+  border: 1px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radiusSm};
+  font-weight: 600;
+  font-size: 0.97rem;
+  color: ${p => p.theme.textSecondary};
+  transition: all 0.16s ease;
+
+  &:hover {
+    background: ${p => p.theme.btnHover};
+    border-color: ${p => p.theme.borderStrong};
+    color: ${p => p.theme.text};
+  }
+`;
+
+const FinishRow = styled.div`
+  margin-top: 20px;
+  text-align: center;
+`;
+
+const FinishBtn = styled.button`
+  padding: 13px 32px;
+  background: linear-gradient(135deg, ${p => p.theme.primary}, ${p => p.theme.primaryStrong});
+  color: #fff;
+  border: none;
+  border-radius: ${p => p.theme.radiusSm};
+  font-weight: 600;
+  font-size: 0.97rem;
+  transition: all 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: ${p => p.theme.shadowPrimary};
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -121,38 +293,6 @@ const DIFFICULTY_HIGH_THRESHOLD = 3;
 function isDue(word) {
   if (!word || !word.nextReviewTime) return true;
   return new Date() >= new Date(word.nextReviewTime);
-}
-
-function buildPriorityQueue(words) {
-  const due = [];
-  const difficult = [];
-  const fresh = [];
-  const remaining = [];
-
-  words.forEach((word, index) => {
-    if (isDue(word)) due.push(index);
-    else if ((word.difficultyScore || 0) >= DIFFICULTY_HIGH_THRESHOLD) difficult.push(index);
-    else if (!word.lastReviewedTime) fresh.push(index);
-    else remaining.push(index);
-  });
-
-  const queue = [];
-  const seen = new Set();
-  const push = arr => arr.forEach(i => { if (!seen.has(i)) { seen.add(i); queue.push(i); } });
-
-  push(due);
-  push(difficult);
-  push(fresh);
-
-  const total = words.length;
-  const minT = Math.min(20, total);
-  const maxT = Math.min(40, total);
-  const prefT = Math.min(30, maxT);
-
-  if (queue.length < minT) push(remaining);
-
-  const target = queue.length >= prefT ? prefT : Math.max(minT, queue.length);
-  return queue.slice(0, Math.min(maxT, target));
 }
 
 /* ──────────────────────────── component ──────────────────────────── */
@@ -186,15 +326,35 @@ export default function BookView() {
     pointer: 0,
     reviewedSet: new Set(),
     easyCount: 0,
+    okayCount: 0,
     hardCount: 0,
   });
   const [showDsComplete, setShowDsComplete] = useState(false);
   const [dsSummary, setDsSummary] = useState(null);
 
+  /* daily study mode: 'off' | 'flash' | 'quizPrompt' | 'quiz' */
+  const [dailyMode, setDailyMode] = useState('off');
+  const [dailyBatchIndices, setDailyBatchIndices] = useState([]);
+  const [dailyQuizPointer, setDailyQuizPointer] = useState(0);
+  /* saves the last completed batch so daily study can be repeated */
+  const [completedBatchIndices, setCompletedBatchIndices] = useState([]);
+
   /* ─── refs ─── */
   const exitTimer = useRef(null);
   const handlersRef = useRef({});
   const stateRef = useRef({});
+  /* tracks word IDs whose familiarity level has already been updated today */
+  const reviewedTodayIds = useRef({ date: '', ids: new Set() });
+
+  function canUpdateLevel(wordId) {
+    const today = new Date().toDateString();
+    if (reviewedTodayIds.current.date !== today) {
+      reviewedTodayIds.current = { date: today, ids: new Set() };
+    }
+    if (reviewedTodayIds.current.ids.has(wordId)) return false;
+    reviewedTodayIds.current.ids.add(wordId);
+    return true;
+  }
 
   /* ─── derived ─── */
   const matchesFilter = useCallback(
@@ -228,7 +388,6 @@ export default function BookView() {
         );
       })
       .sort((a, b) => {
-        // Group: low (level 1-2) = 0, mid (level 3-4) = 1, high (level 5+) = 2
         const groupOf = lvl => (lvl <= 2 ? 0 : lvl <= 4 ? 1 : 2);
         const gA = groupOf(a.reviewLevel || 1);
         const gB = groupOf(b.reviewLevel || 1);
@@ -326,14 +485,14 @@ export default function BookView() {
     });
   }
 
-  /* ─── daily session completion (ref-based to avoid stale closures) ─── */
+  /* ─── daily session completion ─── */
   const completeDsRef = useRef();
   completeDsRef.current = () => {
     const reviewed = ds.reviewedSet.size;
     const mastered = [...ds.reviewedSet]
       .map(idx => words[idx])
       .filter(w => w && (w.reviewLevel || 1) >= 5).length;
-    const attempts = ds.easyCount + ds.hardCount;
+    const attempts = ds.easyCount + ds.okayCount + ds.hardCount;
     const accuracy = attempts > 0 ? Math.round((ds.easyCount / attempts) * 100) : null;
 
     setDsSummary({ reviewed, mastered, accuracy });
@@ -341,20 +500,27 @@ export default function BookView() {
     setDs(prev => ({ ...prev, active: false, indices: [], pointer: 0 }));
     refreshProgress();
 
-    clearExit();
-    exitTimer.current = setTimeout(() => {
-      setShowDsComplete(false);
-      setDs({
-        active: false,
-        indices: [],
-        pointer: 0,
-        reviewedSet: new Set(),
-        easyCount: 0,
-        hardCount: 0,
-      });
-      setManualSelection(false);
-      setShowBack(false);
-    }, 2400);
+    if (dailyMode === 'flash') {
+      setCompletedBatchIndices([...dailyBatchIndices]);
+      setDailyMode('quizPrompt');
+    } else {
+      // Normal mode: auto-dismiss
+      clearExit();
+      exitTimer.current = setTimeout(() => {
+        setShowDsComplete(false);
+        setDs({
+          active: false,
+          indices: [],
+          pointer: 0,
+          reviewedSet: new Set(),
+          easyCount: 0,
+          okayCount: 0,
+          hardCount: 0,
+        });
+        setManualSelection(false);
+        setShowBack(false);
+      }, 2400);
+    }
   };
 
   /* ─── action handlers ─── */
@@ -410,7 +576,10 @@ export default function BookView() {
     const word = words[currentIndex];
     if (!word?.id) return;
     try {
-      await api.reviewWord(bookId, word.id, result);
+      if (canUpdateLevel(word.id)) {
+        await api.reviewWord(bookId, word.id, result);
+        await Promise.all([refreshWords(), refreshProgress()]);
+      }
       setDs(prev => {
         if (!prev.active) return prev;
         const s = new Set(prev.reviewedSet);
@@ -419,26 +588,49 @@ export default function BookView() {
           ...prev,
           reviewedSet: s,
           easyCount: prev.easyCount + (result === 'easy' ? 1 : 0),
+          okayCount: prev.okayCount + (result === 'okay' ? 1 : 0),
           hardCount: prev.hardCount + (result === 'hard' ? 1 : 0),
         };
       });
-      await Promise.all([refreshWords(), refreshProgress()]);
+      handleNextCard();
     } catch {
       alert('Review update failed');
     }
   }
 
-  function handleStartDailyStudy() {
+  async function handleStartDailyStudy() {
     if (!words.length) {
       alert('No words available for daily study. Add some words first.');
       return;
     }
-    const queue = buildPriorityQueue(words);
-    if (!queue.length) {
-      alert("No suitable words found for today's study session.");
+
+    let reviewWords;
+    try {
+      reviewWords = await api.fetchDailyReviewWords(bookId);
+    } catch {
+      alert('Failed to load daily review words.');
       return;
     }
-    handleSwitchTab('flash');
+
+    let queue;
+
+    if (reviewWords.length > 0) {
+      queue = reviewWords
+        .map(w => words.findIndex(local => local.id === w.id))
+        .filter(i => i >= 0);
+    } else if (completedBatchIndices.length > 0) {
+      // No words due — repeat last session (levels won't double-update via canUpdateLevel)
+      queue = completedBatchIndices.filter(i => i >= 0 && i < words.length);
+    } else {
+      // First run ever and no due words — use all available words
+      queue = words.map((_, i) => i);
+    }
+
+    if (!queue.length) {
+      alert('No words available for study.');
+      return;
+    }
+
     clearExit();
     const first = queue[0];
     setCurrentIndex(first);
@@ -447,14 +639,76 @@ export default function BookView() {
     setSearchText('');
     setActiveFilter('all');
     setShowDsComplete(false);
+    setDsSummary(null);
+    setDailyBatchIndices(queue);
+    setDailyQuizPointer(0);
+    setDailyMode('flash');
+    setActiveTab('flash');
     setDs({
       active: true,
       indices: queue,
       pointer: 0,
       reviewedSet: new Set([first]),
       easyCount: 0,
+      okayCount: 0,
       hardCount: 0,
     });
+  }
+
+  function handleStartQuiz() {
+    setShowDsComplete(false);
+    setDailyQuizPointer(0);
+    setDailyMode('quiz');
+  }
+
+  function handleExitDailyStudy() {
+    clearExit();
+    setDailyMode('off');
+    setDailyBatchIndices([]);
+    setDailyQuizPointer(0);
+    setShowDsComplete(false);
+    setDsSummary(null);
+    setDs({
+      active: false,
+      indices: [],
+      pointer: 0,
+      reviewedSet: new Set(),
+      easyCount: 0,
+      okayCount: 0,
+      hardCount: 0,
+    });
+    setManualSelection(false);
+    setShowBack(false);
+    setActiveTab('flash');
+    refreshProgress();
+  }
+
+  function handleNextDailyQuiz() {
+    setDailyQuizPointer(prev => Math.min(prev + 1, dailyBatchIndices.length - 1));
+  }
+
+  function handlePrevDailyQuiz() {
+    setDailyQuizPointer(prev => Math.max(prev - 1, 0));
+  }
+
+  async function handleCheckDailySpell(guess) {
+    const idx = dailyBatchIndices[dailyQuizPointer];
+    if (idx === undefined) return null;
+    const word = words[idx];
+    if (!word) return null;
+    const target = word.term.trim().toLowerCase();
+    const g = guess.trim().toLowerCase();
+    if (!g) return { correct: false, message: 'Please type the English word.' };
+    if (g === target) {
+      if (canUpdateLevel(word.id)) {
+        try {
+          await api.reviewWord(bookId, word.id, 'easy');
+          await Promise.all([refreshWords(), refreshProgress()]);
+        } catch { /* ignore */ }
+      }
+      return { correct: true, message: 'Correct!' };
+    }
+    return { correct: false, message: `Wrong. Correct answer: ${word.term}` };
   }
 
   function handleWordClick(item, visIdx, event) {
@@ -590,18 +844,13 @@ export default function BookView() {
     const g = guess.trim().toLowerCase();
     if (!g) return { correct: false, message: 'Please type the English word.' };
     if (g === target) {
-      const prevLvl = word.reviewLevel || 1;
-      try {
-        const updated = await api.reviewWord(bookId, word.id, 'easy');
-        await Promise.all([refreshWords(), refreshProgress()]);
-        let msg = 'Correct! 🎉';
-        if (updated && (updated.reviewLevel || prevLvl) === prevLvl && prevLvl < 6) {
-          msg = 'Correct! 🎉 Daily level-up cap reached for this word.';
-        }
-        return { correct: true, message: msg };
-      } catch {
-        return { correct: true, message: 'Correct! 🎉' };
+      if (canUpdateLevel(word.id)) {
+        try {
+          await api.reviewWord(bookId, word.id, 'easy');
+          await Promise.all([refreshWords(), refreshProgress()]);
+        } catch { /* ignore */ }
       }
+      return { correct: true, message: 'Correct!' };
     }
     return { correct: false, message: `Wrong. Correct answer: ${word.term}` };
   }
@@ -617,20 +866,22 @@ export default function BookView() {
   }
 
   /* ─── sync refs for keyboard handler ─── */
-  stateRef.current = { activeTab, ds };
+  stateRef.current = { activeTab, ds, dailyMode };
   handlersRef.current = {
     flip: handleFlip,
     nextCard: handleNextCard,
     prevCard: handlePrevCard,
     easyReview: () => handleReview('easy'),
+    okayReview: () => handleReview('okay'),
     hardReview: () => handleReview('hard'),
     nextSpell: handleNextSpell,
     prevSpell: handlePrevSpell,
+    nextDailyQuiz: handleNextDailyQuiz,
+    prevDailyQuiz: handlePrevDailyQuiz,
   };
 
   /* ──────────────────────────── effects ──────────────────────────── */
 
-  /* fetch data on mount */
   useEffect(() => {
     if (!bookId) return;
     (async () => {
@@ -649,7 +900,6 @@ export default function BookView() {
     })();
   }, [bookId]);
 
-  /* sync indices when words change */
   useEffect(() => {
     const len = words.length;
     if (len === 0) return;
@@ -668,7 +918,6 @@ export default function BookView() {
     });
   }, [words]);
 
-  /* daily session completion detection */
   useEffect(() => {
     if (!ds.active || ds.indices.length === 0) return;
     if (ds.reviewedSet.size < ds.indices.length) return;
@@ -676,7 +925,6 @@ export default function BookView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ds.reviewedSet.size, ds.active, ds.indices.length]);
 
-  /* keyboard shortcuts */
   useEffect(() => {
     const onKey = e => {
       if (e.key === 'Escape') {
@@ -689,26 +937,38 @@ export default function BookView() {
       const tag = e.target.tagName?.toLowerCase();
       const typing = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
 
-      /* spell-mode global (when NOT in input) */
+      /* daily quiz mode: arrow navigation only, block all flash shortcuts */
+      if (s.dailyMode === 'quiz') {
+        if (!typing) {
+          if (e.key === 'ArrowRight') { e.preventDefault(); h.nextDailyQuiz(); return; }
+          if (e.key === 'ArrowLeft') { e.preventDefault(); h.prevDailyQuiz(); return; }
+        }
+        return;
+      }
+
+      /* quiz prompt: block all shortcuts */
+      if (s.dailyMode === 'quizPrompt') return;
+
+      /* normal spell mode */
       if (s.activeTab === 'spell' && !typing) {
         if (e.key === 'ArrowRight') { e.preventDefault(); h.nextSpell(); return; }
         if (e.key === 'ArrowLeft') { e.preventDefault(); h.prevSpell(); return; }
       }
 
-      /* flash-mode */
+      /* flash mode */
       if (s.activeTab !== 'flash' || typing) return;
       if (e.code === 'Space') { e.preventDefault(); h.flip(); return; }
       if (e.key === 'ArrowRight') { e.preventDefault(); h.nextCard(); return; }
       if (e.key === 'ArrowLeft') { e.preventDefault(); h.prevCard(); return; }
-      if (e.key === 'e' || e.key === 'E') { e.preventDefault(); h.easyReview(); return; }
-      if (e.key === 'h' || e.key === 'H') { e.preventDefault(); h.hardReview(); }
+      if (e.key === 'a' || e.key === 'A') { e.preventDefault(); h.hardReview(); return; }
+      if (e.key === 's' || e.key === 'S') { e.preventDefault(); h.okayReview(); return; }
+      if (e.key === 'd' || e.key === 'D') { e.preventDefault(); h.easyReview(); }
     };
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  /* close context menu on click / scroll */
   useEffect(() => {
     const close = () => setCtxMenu(null);
     document.addEventListener('click', close);
@@ -719,10 +979,11 @@ export default function BookView() {
     };
   }, []);
 
-  /* cleanup exit timer */
   useEffect(() => () => clearExit(), []);
 
   /* ──────────────────────────── render ──────────────────────────── */
+
+  const inDailyStudy = dailyMode !== 'off';
 
   const activeIndex =
     activeTab === 'flash'
@@ -734,63 +995,55 @@ export default function BookView() {
   return (
     <Container>
       <TopBar>
-        <BackLink to="/bookshelf">← Back to Bookshelf</BackLink>
-        <ProgressRow>
-          <span>
-            Added Today: <strong>{progress.addedToday}</strong>
-          </span>
-          <span>
-            Reviewed Today: <strong>{progress.reviewedToday}</strong>
-          </span>
-          <span>
-            Streak:{' '}
-            <strong>
-              {progress.streak} day{progress.streak === 1 ? '' : 's'}
-            </strong>
-          </span>
-        </ProgressRow>
-        <DailyBtn onClick={handleStartDailyStudy}>▶ Start Daily Study</DailyBtn>
+        {inDailyStudy ? (
+          <>
+            <DailyTitleBlock>
+              <DailyTitleText>Daily Study</DailyTitleText>
+              <DailyPhase>
+                {dailyMode === 'flash' && `Flash Cards · ${dailyBatchIndices.length} words`}
+                {dailyMode === 'quizPrompt' && 'Flash Cards Complete'}
+                {dailyMode === 'quiz' && `Spelling Quiz · ${dailyBatchIndices.length} words`}
+              </DailyPhase>
+            </DailyTitleBlock>
+            <ProgressRow>
+              <span>
+                Reviewed Today: <strong>{progress.reviewedToday}</strong>
+              </span>
+              <span>
+                Streak:{' '}
+                <strong>
+                  {progress.streak} day{progress.streak === 1 ? '' : 's'}
+                </strong>
+              </span>
+            </ProgressRow>
+            <ExitDailyBtn onClick={handleExitDailyStudy}>✕ Exit</ExitDailyBtn>
+          </>
+        ) : (
+          <>
+            <BackLink to="/bookshelf">← Back to Bookshelf</BackLink>
+            <ProgressRow>
+              <span>
+                Added Today: <strong>{progress.addedToday}</strong>
+              </span>
+              <span>
+                Reviewed Today: <strong>{progress.reviewedToday}</strong>
+              </span>
+              <span>
+                Streak:{' '}
+                <strong>
+                  {progress.streak} day{progress.streak === 1 ? '' : 's'}
+                </strong>
+              </span>
+            </ProgressRow>
+            <DailyBtn onClick={handleStartDailyStudy}>▶ Start Daily Study</DailyBtn>
+          </>
+        )}
       </TopBar>
 
-      <BookTitle>{book?.title}</BookTitle>
-
-      <Layout>
-        <VocabList
-          visibleWords={visibleWords}
-          activeIndex={activeIndex}
-          selectionMode={selectionMode}
-          selectedWordIds={selectedIds}
-          searchText={searchText}
-          activeFilter={activeFilter}
-          isQuizActive={activeTab === 'spell'}
-          onSearchChange={setSearchText}
-          onFilterChange={setActiveFilter}
-          onWordClick={handleWordClick}
-          onWordContextMenu={handleWordCtx}
-          onToggleSelect={toggleSelect}
-          onDeleteSelected={handleDeleteSelected}
-          deleteCount={selectedIds.size}
-        />
-
-        <RightPanel>
-          <TabBar>
-            <TabBtn $active={activeTab === 'add'} onClick={() => handleSwitchTab('add')}>
-              Add
-            </TabBtn>
-            <TabBtn $active={activeTab === 'flash'} onClick={() => handleSwitchTab('flash')}>
-              Flash Cards
-            </TabBtn>
-            <TabBtn $active={activeTab === 'spell'} onClick={() => handleSwitchTab('spell')}>
-              Spelling Quiz
-            </TabBtn>
-            <TabBtn $active={activeTab === 'stats'} onClick={() => handleSwitchTab('stats')}>
-              Statistics
-            </TabBtn>
-          </TabBar>
-
-          {activeTab === 'add' && <AddWords onSave={handleSaveWords} />}
-
-          {activeTab === 'flash' && (
+      {inDailyStudy ? (
+        <DailyLayout>
+          {/* Flash cards phase */}
+          {(dailyMode === 'flash' || dailyMode === 'quizPrompt') && (
             <FlashCards
               word={effectiveIndex >= 0 ? words[effectiveIndex] : null}
               showBack={showBack}
@@ -805,24 +1058,121 @@ export default function BookView() {
               onNext={handleNextCard}
               onPrev={handlePrevCard}
               onEasy={() => handleReview('easy')}
+              onOkay={() => handleReview('okay')}
               onHard={() => handleReview('hard')}
             />
           )}
 
-          {activeTab === 'spell' && (
-            <SpellingQuiz
-              word={words[spellIndex]}
-              position={spellIndex + 1}
-              total={words.length}
-              onCheck={handleCheckSpell}
-              onNext={handleNextSpell}
-              onPrev={handlePrevSpell}
-            />
+          {/* Quiz prompt */}
+          {dailyMode === 'quizPrompt' && (
+            <QuizPromptBox>
+              <QuizPromptTitle>Flash cards complete!</QuizPromptTitle>
+              <QuizPromptSub>
+                Would you like to reinforce today's words with a spelling quiz?
+              </QuizPromptSub>
+              <QuizPromptBtns>
+                <StartQuizBtn onClick={handleStartQuiz}>Start Spelling Quiz</StartQuizBtn>
+                <SkipQuizBtn onClick={handleExitDailyStudy}>No, I'm Done</SkipQuizBtn>
+              </QuizPromptBtns>
+            </QuizPromptBox>
           )}
 
-          {activeTab === 'stats' && <Statistics bookId={bookId} />}
-        </RightPanel>
-      </Layout>
+          {/* Spelling quiz phase */}
+          {dailyMode === 'quiz' && (
+            <>
+              <SpellingQuiz
+                word={words[dailyBatchIndices[dailyQuizPointer]]}
+                position={dailyQuizPointer + 1}
+                total={dailyBatchIndices.length}
+                onCheck={handleCheckDailySpell}
+                onNext={handleNextDailyQuiz}
+                onPrev={handlePrevDailyQuiz}
+                large
+              />
+              <FinishRow>
+                <FinishBtn onClick={handleExitDailyStudy}>Finish &amp; Exit Daily Study</FinishBtn>
+              </FinishRow>
+            </>
+          )}
+        </DailyLayout>
+      ) : (
+        <>
+          <BookTitle>{book?.title}</BookTitle>
+
+          <Layout>
+            <VocabList
+              visibleWords={visibleWords}
+              activeIndex={activeIndex}
+              selectionMode={selectionMode}
+              selectedWordIds={selectedIds}
+              searchText={searchText}
+              activeFilter={activeFilter}
+              isQuizActive={activeTab === 'spell'}
+              onSearchChange={setSearchText}
+              onFilterChange={setActiveFilter}
+              onWordClick={handleWordClick}
+              onWordContextMenu={handleWordCtx}
+              onToggleSelect={toggleSelect}
+              onDeleteSelected={handleDeleteSelected}
+              deleteCount={selectedIds.size}
+            />
+
+            <RightPanel>
+              <TabBar>
+                <TabBtn $active={activeTab === 'add'} onClick={() => handleSwitchTab('add')}>
+                  Add
+                </TabBtn>
+                <TabBtn $active={activeTab === 'flash'} onClick={() => handleSwitchTab('flash')}>
+                  Flash Cards
+                </TabBtn>
+                <TabBtn $active={activeTab === 'spell'} onClick={() => handleSwitchTab('spell')}>
+                  Spelling Quiz
+                </TabBtn>
+                <TabBtn $active={activeTab === 'stats'} onClick={() => handleSwitchTab('stats')}>
+                  Statistics
+                </TabBtn>
+              </TabBar>
+
+              <TabContent>
+                {activeTab === 'add' && <AddWords onSave={handleSaveWords} />}
+
+                {activeTab === 'flash' && (
+                  <FlashCards
+                    word={effectiveIndex >= 0 ? words[effectiveIndex] : null}
+                    showBack={showBack}
+                    position={flashPosition + 1}
+                    total={currentFlashIndices.length}
+                    message={flashMessage}
+                    canInteract={canFlip}
+                    dailyProgress={ds.active ? dsProgress : null}
+                    showComplete={showDsComplete}
+                    summary={dsSummary}
+                    onFlip={handleFlip}
+                    onNext={handleNextCard}
+                    onPrev={handlePrevCard}
+                    onEasy={() => handleReview('easy')}
+                    onOkay={() => handleReview('okay')}
+                    onHard={() => handleReview('hard')}
+                  />
+                )}
+
+                {activeTab === 'spell' && (
+                  <SpellingQuiz
+                    word={words[spellIndex]}
+                    position={spellIndex + 1}
+                    total={words.length}
+                    onCheck={handleCheckSpell}
+                    onNext={handleNextSpell}
+                    onPrev={handlePrevSpell}
+                  />
+                )}
+
+                {activeTab === 'stats' && <Statistics bookId={bookId} />}
+              </TabContent>
+            </RightPanel>
+          </Layout>
+        </>
+      )}
 
       {ctxMenu && (
         <ContextMenu

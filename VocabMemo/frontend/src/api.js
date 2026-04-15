@@ -84,6 +84,12 @@ export async function reviewWord(bookId, wordId, result) {
   return res.json();
 }
 
+export async function fetchDailyReviewWords(bookId) {
+  const res = await fetch(`${BASE}/api/books/${bookId}/words/review/daily`);
+  if (!res.ok) throw new Error('Failed to fetch daily review words');
+  return res.json();
+}
+
 export async function fetchDailyStats(bookId, days = 7) {
   const res = await fetch(`${BASE}/api/books/${bookId}/words/stats/daily?days=${days}`);
   if (!res.ok) throw new Error('Failed to fetch stats');

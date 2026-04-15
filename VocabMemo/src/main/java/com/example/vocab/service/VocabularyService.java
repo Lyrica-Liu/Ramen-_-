@@ -19,11 +19,14 @@ public class VocabularyService {
     private final WordRepository wordRepository;
     private final BookService bookService;
     private final ProgressService progressService;
+    private final SpacedRepetitionService srsService;
 
-    public VocabularyService(WordRepository wordRepository, BookService bookService, ProgressService progressService) {
+    public VocabularyService(WordRepository wordRepository, BookService bookService,
+                             ProgressService progressService, SpacedRepetitionService srsService) {
         this.wordRepository = wordRepository;
         this.bookService = bookService;
         this.progressService = progressService;
+        this.srsService = srsService;
     }
 
     public static class DailyStats {
@@ -80,6 +83,14 @@ public class VocabularyService {
                 word.setDifficultyScore(0);
                 changed = true;
             }
+            if (word.getOffsetIndex() == null) {
+                word.setOffsetIndex(0);
+                changed = true;
+            }
+            if (word.getErrorCount() == null) {
+                word.setErrorCount(0);
+                changed = true;
+            }
         }
 
         if (changed) {
@@ -122,6 +133,14 @@ public class VocabularyService {
                 word.setDifficultyScore(0);
                 changed = true;
             }
+            if (word.getOffsetIndex() == null) {
+                word.setOffsetIndex(0);
+                changed = true;
+            }
+            if (word.getErrorCount() == null) {
+                word.setErrorCount(0);
+                changed = true;
+            }
         }
         if (changed) {
             wordRepository.saveAll(content);
@@ -136,6 +155,9 @@ public class VocabularyService {
             return new ArrayList<>();
         }
 
+        // Create one batch for this entire group of words
+        com.example.vocab.model.Batch batch = srsService.createBatch(book);
+
         List<Word> added = new ArrayList<>();
         int position = book.getWords().size();
         LocalDateTime now = LocalDateTime.now();
@@ -143,7 +165,6 @@ public class VocabularyService {
             word.setBook(book);
             word.setPosition(position++);
             word.setReviewLevel(1);
-            word.setNextReviewTime(now);
             word.setLastReviewedTime(null);
             word.setCreatedTime(now);
             word.setLevelProgressDate(now.toLocalDate());
@@ -151,6 +172,11 @@ public class VocabularyService {
             word.setDifficultyScore(0);
             added.add(wordRepository.save(word));
         }
+
+        // Assign batch and set initial nextReviewTime = createdAt + first offset
+        srsService.assignWordsToBatch(added, batch);
+        wordRepository.saveAll(added);
+
         progressService.recordAddedWords(bookId, added.size());
         return added;
     }
@@ -174,7 +200,10 @@ public class VocabularyService {
         if ("hard".equalsIgnoreCase(result)) {
             currentLevel = 1;
             difficultyScore = Math.min(10, difficultyScore + 1);
+        } else if ("okay".equalsIgnoreCase(result)) {
+            // level and difficulty stay the same; word is rescheduled at its current level
         } else {
+            // easy
             LocalDate today = LocalDate.now();
             LocalDate progressDate = word.getLevelProgressDate();
             int progressCount = word.getLevelProgressCount() == null ? 0 : word.getLevelProgressCount();

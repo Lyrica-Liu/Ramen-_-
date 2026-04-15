@@ -3,10 +3,12 @@ package com.example.vocab.controller;
 import com.example.vocab.dto.PageResponse;
 import com.example.vocab.model.Word;
 import com.example.vocab.service.ProgressService;
+import com.example.vocab.service.SpacedRepetitionService;
 import com.example.vocab.service.VocabularyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class VocabularyController {
     private final VocabularyService vocabularyService;
     private final ProgressService progressService;
+    private final SpacedRepetitionService srsService;
 
     public static class WordUpdateRequest {
         private String term;
@@ -80,9 +83,11 @@ public class VocabularyController {
         }
     }
 
-    public VocabularyController(VocabularyService vocabularyService, ProgressService progressService) {
+    public VocabularyController(VocabularyService vocabularyService, ProgressService progressService,
+                                SpacedRepetitionService srsService) {
         this.vocabularyService = vocabularyService;
         this.progressService = progressService;
+        this.srsService = srsService;
     }
 
     @GetMapping
@@ -122,11 +127,11 @@ public class VocabularyController {
         }
 
         String result = request.getResult().trim().toLowerCase();
-        if (!"easy".equals(result) && !"hard".equals(result)) {
+        if (!"easy".equals(result) && !"okay".equals(result) && !"hard".equals(result)) {
             return ResponseEntity.badRequest().build();
         }
 
-        Word updated = vocabularyService.updateReview(bookId, wordId, result);
+        Word updated = srsService.reviewWord(bookId, wordId, result);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
@@ -166,6 +171,16 @@ public class VocabularyController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Returns all words due for review today, sorted by errorCount desc then oldest nextReviewTime.
+     * The frontend uses this to build the daily study session queue.
+     */
+    @GetMapping("/review/daily")
+    public ResponseEntity<List<Word>> getDailyReviewWords(@PathVariable("bookId") Long bookId) {
+        List<Word> words = srsService.getDailyReviewWords(bookId, LocalDate.now());
+        return ResponseEntity.ok(words);
     }
 
     @GetMapping("/stats/daily")

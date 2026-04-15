@@ -11,7 +11,8 @@ const Panel = styled.div`
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 78vh;
+  height: 100%;
+  overflow: hidden;
 `;
 
 const SearchRow = styled.div`

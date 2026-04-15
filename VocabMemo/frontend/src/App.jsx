@@ -11,6 +11,11 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
   }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', system-ui,
       BlinkMacSystemFont, sans-serif;

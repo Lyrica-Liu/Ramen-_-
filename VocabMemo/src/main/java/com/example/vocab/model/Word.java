@@ -36,6 +36,18 @@ public class Word {
 
     private Integer difficultyScore;
 
+    /** Which offset slot this word is currently at in its batch schedule (0-based). */
+    private Integer offsetIndex;
+
+    /** Number of times this word has been answered incorrectly (hard). */
+    private Integer errorCount;
+
+    /** The batch this word belongs to; null for words added before batches were introduced. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "batch_id")
+    @JsonIgnore
+    private Batch batch;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id")
     @JsonIgnore
@@ -53,6 +65,8 @@ public class Word {
         this.levelProgressDate = now.toLocalDate();
         this.levelProgressCount = 0;
         this.difficultyScore = 0;
+        this.offsetIndex = 0;
+        this.errorCount = 0;
     }
 
     public Long getId() { return id; }
@@ -90,6 +104,15 @@ public class Word {
 
     public Integer getDifficultyScore() { return difficultyScore; }
     public void setDifficultyScore(Integer difficultyScore) { this.difficultyScore = difficultyScore; }
+
+    public Integer getOffsetIndex() { return offsetIndex; }
+    public void setOffsetIndex(Integer offsetIndex) { this.offsetIndex = offsetIndex; }
+
+    public Integer getErrorCount() { return errorCount; }
+    public void setErrorCount(Integer errorCount) { this.errorCount = errorCount; }
+
+    public Batch getBatch() { return batch; }
+    public void setBatch(Batch batch) { this.batch = batch; }
 
     public VocabularyBook getBook() { return book; }
     public void setBook(VocabularyBook book) { this.book = book; }
