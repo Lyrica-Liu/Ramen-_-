@@ -1,24 +1,16 @@
 package com.example.vocab.controller;
 
-import org.springframework.stereotype.Controller;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 public class ViewController {
 
-    @GetMapping({"/", "/bookshelf"})
-    public String bookshelf() {
-        return "bookshelf";
-    }
-
-    @GetMapping("/book/{bookId}")
-    public String book(@PathVariable("bookId") Long bookId) {
-        return "book-view";
-    }
-
-    @GetMapping("/book")
-    public String bookRoot() {
-        return "redirect:/bookshelf";
+    @GetMapping(value = {"/{path:^(?!api).*}", "/{path:^(?!api).*}/**"}, produces = MediaType.TEXT_HTML_VALUE)
+    public Resource forward() {
+        return new ClassPathResource("static/index.html");
     }
 }
