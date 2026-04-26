@@ -5,8 +5,10 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +34,37 @@ jobs:
       - name: Build Spring Boot JAR
         run: mvn package -DskipTests
 
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
         with:
-          app-name: 'Ramen'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: target/app.jar
-          startup-command: 'java -jar /home/site/wwwroot/app.jar'
+          name: app-jar
+          path: target/app.jar
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_39E24E9158474D7E85286028E73D49DC }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1580C94001CE4265A79864B81C0B4736 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B8C5DBCD34540F6BEF536FCD298485E }}
+
+      - name: Deploy JAR to Azure App Service
+        run: |
+          az webapp deploy \
+            --resource-group resource \
+            --name Ramen \
+            --src-path app.jar \
+            --type jar \
+            --restart true
