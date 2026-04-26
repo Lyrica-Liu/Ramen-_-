@@ -7,9 +7,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -35,16 +32,10 @@ jobs:
       - name: Build Spring Boot JAR
         run: mvn package -DskipTests
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_39E24E9158474D7E85286028E73D49DC }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1580C94001CE4265A79864B81C0B4736 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B8C5DBCD34540F6BEF536FCD298485E }}
-
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'Ramen'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: target/app.jar
           startup-command: 'java -jar /home/site/wwwroot/app.jar'
