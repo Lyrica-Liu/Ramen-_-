@@ -64,12 +64,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1580C94001CE4265A79864B81C0B4736 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B8C5DBCD34540F6BEF536FCD298485E }}
 
-      - name: Set Java runtime
+      - name: Configure App Service
         run: |
           az webapp config set \
             --resource-group resource \
             --name Ramen \
             --linux-fx-version "JAVA|17-java17"
+          az webapp config appsettings set \
+            --resource-group resource \
+            --name Ramen \
+            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600
 
       - name: Deploy JAR to Azure App Service
         run: |
