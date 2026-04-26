@@ -35,6 +35,7 @@ jobs:
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-name: ramen
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: target/app.jar
+          startup-command: 'java -jar /home/site/wwwroot/app.jar'

@@ -38,7 +38,7 @@ export async function deleteBook(bookId) {
 }
 
 export async function fetchWords(bookId) {
-  const res = await fetch(`${BASE}/api/books/${bookId}/words/all`);
+  const res = await fetch(`${BASE}/api/books/${bookId}/words`);
   if (!res.ok) throw new Error('Failed to fetch words');
   return res.json();
 }

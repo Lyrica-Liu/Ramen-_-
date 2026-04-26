@@ -89,6 +89,11 @@ public class VocabularyController {
         return vocabularyService.listWords(bookId);
     }
 
+    @GetMapping("/review/daily")
+    public List<Word> getDailyReviewWords(@PathVariable("bookId") Long bookId) {
+        return vocabularyService.getDueWords(bookId);
+    }
+
     @PostMapping("/batch")
     public ResponseEntity<List<Word>> addWords(@PathVariable("bookId") Long bookId, @RequestBody List<Word> payload) {
         if (payload == null || payload.isEmpty()) {

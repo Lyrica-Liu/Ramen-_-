@@ -206,6 +206,10 @@ public class VocabularyService {
         };
     }
 
+    public List<Word> getDueWords(Long bookId) {
+        return wordRepository.findByBookIdAndNextReviewTimeLessThanEqualOrderByNextReviewTimeAsc(bookId, LocalDateTime.now());
+    }
+
     public void clearWords(Long bookId) {
         wordRepository.deleteByBookId(bookId);
     }
