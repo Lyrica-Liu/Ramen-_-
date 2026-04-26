@@ -74,6 +74,9 @@ jobs:
             --resource-group resource \
             --name Ramen \
             --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600
+          az webapp start \
+            --resource-group resource \
+            --name Ramen
 
       - name: Deploy JAR to Azure App Service
         run: |
@@ -81,5 +84,7 @@ jobs:
             --resource-group resource \
             --name Ramen \
             --src-path app.jar \
-            --type jar \
-            --restart true
+            --type jar
+          az webapp restart \
+            --resource-group resource \
+            --name Ramen
