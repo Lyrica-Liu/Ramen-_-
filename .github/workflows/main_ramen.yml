@@ -64,10 +64,18 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1580C94001CE4265A79864B81C0B4736 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B8C5DBCD34540F6BEF536FCD298485E }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'Ramen'
-          slot-name: 'Production'
-          package: app.jar
-          startup-command: 'java -jar /home/site/wwwroot/app.jar'
+      - name: Set Java runtime
+        run: |
+          az webapp config set \
+            --resource-group resource \
+            --name Ramen \
+            --linux-fx-version "JAVA|17-java17"
+
+      - name: Deploy JAR to Azure App Service
+        run: |
+          az webapp deploy \
+            --resource-group resource \
+            --name Ramen \
+            --src-path app.jar \
+            --type jar \
+            --restart true
