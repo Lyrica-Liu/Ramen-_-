@@ -78,20 +78,23 @@ jobs:
 
       - name: Deploy JAR via Kudu zip deploy
         run: |
-          CREDS=$(az webapp deployment list-publishing-credentials \
+          TOKEN=$(az account get-access-token \
+            --resource https://management.azure.com \
+            --query accessToken -o tsv)
+
+          KUDU_HOST=$(az webapp show \
             --resource-group resource \
             --name Ramen \
-            --query "{user: publishingUserName, pass: publishingPassword, url: scmUri}" \
-            -o json)
-          USER=$(echo $CREDS | jq -r '.user')
-          PASS=$(echo $CREDS | jq -r '.pass')
-          KUDU=$(echo $CREDS | jq -r '.url')
+            --query "hostNameSslStates[?contains(name,'.scm.')].name | [0]" \
+            -o tsv)
+
+          echo "Deploying to: https://$KUDU_HOST"
 
           zip app.zip app.jar
 
           HTTP=$(curl -s -o /tmp/deploy_out.txt -w "%{http_code}" \
-            -X POST "$KUDU/api/zipdeploy" \
-            -u "$USER:$PASS" \
+            -X POST "https://$KUDU_HOST/api/zipdeploy" \
+            -H "Authorization: Bearer $TOKEN" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @app.zip)
 
