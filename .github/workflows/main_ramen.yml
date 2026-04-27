@@ -74,17 +74,29 @@ jobs:
             --resource-group resource \
             --name Ramen \
             --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600
-          az webapp start \
-            --resource-group resource \
-            --name Ramen
+          az webapp start --resource-group resource --name Ramen
 
-      - name: Deploy JAR to Azure App Service
+      - name: Deploy JAR via Kudu zip deploy
         run: |
-          az webapp deploy \
+          CREDS=$(az webapp deployment list-publishing-credentials \
             --resource-group resource \
             --name Ramen \
-            --src-path app.jar \
-            --type jar
-          az webapp restart \
-            --resource-group resource \
-            --name Ramen
+            --query "{user: publishingUserName, pass: publishingPassword, url: scmUri}" \
+            -o json)
+          USER=$(echo $CREDS | jq -r '.user')
+          PASS=$(echo $CREDS | jq -r '.pass')
+          KUDU=$(echo $CREDS | jq -r '.url')
+
+          zip app.zip app.jar
+
+          HTTP=$(curl -s -o /tmp/deploy_out.txt -w "%{http_code}" \
+            -X POST "$KUDU/api/zipdeploy" \
+            -u "$USER:$PASS" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @app.zip)
+
+          cat /tmp/deploy_out.txt
+          echo "HTTP status: $HTTP"
+          [ "$HTTP" -lt 300 ] || exit 1
+
+          az webapp restart --resource-group resource --name Ramen
