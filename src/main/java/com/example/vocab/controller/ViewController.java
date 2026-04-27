@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ViewController {
 
-    @GetMapping(value = {"/{path:^(?!api).*}", "/{path:^(?!api).*}/**"}, produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = {"/{path:^(?!api|assets).*}", "/{path:^(?!api|assets).*}/**"}, produces = MediaType.TEXT_HTML_VALUE)
     public Resource forward() {
         return new ClassPathResource("static/index.html");
     }
