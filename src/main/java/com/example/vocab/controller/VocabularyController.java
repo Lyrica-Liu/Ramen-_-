@@ -1,10 +1,15 @@
 package com.example.vocab.controller;
 
 import com.example.vocab.model.Word;
+import com.example.vocab.security.UserPrincipal;
+import com.example.vocab.service.BookService;
 import com.example.vocab.service.ProgressService;
 import com.example.vocab.service.VocabularyService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +84,23 @@ public class VocabularyController {
         }
     }
 
-    public VocabularyController(VocabularyService vocabularyService, ProgressService progressService) {
+    private final BookService bookService;
+
+    public VocabularyController(VocabularyService vocabularyService,
+                                 ProgressService progressService,
+                                 BookService bookService) {
         this.vocabularyService = vocabularyService;
         this.progressService = progressService;
+        this.bookService = bookService;
+    }
+
+    @ModelAttribute
+    public void checkOwnership(@PathVariable("bookId") Long bookId, Authentication auth) {
+        if (auth == null) return;
+        Long userId = ((UserPrincipal) auth.getPrincipal()).getId();
+        if (bookService.getBook(bookId, userId) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
+        }
     }
 
     @GetMapping

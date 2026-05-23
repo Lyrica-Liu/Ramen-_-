@@ -1,8 +1,10 @@
 package com.example.vocab.controller;
 
 import com.example.vocab.model.VocabularyBook;
+import com.example.vocab.security.UserPrincipal;
 import com.example.vocab.service.BookService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,48 +19,44 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    private Long userId(Authentication auth) {
+        return ((UserPrincipal) auth.getPrincipal()).getId();
+    }
+
     @GetMapping
-    public List<VocabularyBook> getBooks() {
-        return bookService.listBooks();
+    public List<VocabularyBook> getBooks(Authentication auth) {
+        return bookService.listBooks(userId(auth));
     }
 
     @PostMapping
-    public ResponseEntity<VocabularyBook> createBook(@RequestBody VocabularyBook bookRequest) {
-        if (bookRequest.getTitle() == null || bookRequest.getTitle().trim().isEmpty()) {
+    public ResponseEntity<VocabularyBook> createBook(@RequestBody VocabularyBook req, Authentication auth) {
+        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        VocabularyBook book = bookService.createBook(bookRequest.getTitle().trim());
-        return ResponseEntity.ok(book);
+        return ResponseEntity.ok(bookService.createBook(req.getTitle().trim(), userId(auth)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VocabularyBook> getBook(@PathVariable("id") Long id) {
-        VocabularyBook book = bookService.getBook(id);
-        if (book == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(book);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable("id") Long id) {
-        bookService.deleteBook(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<VocabularyBook> getBook(@PathVariable("id") Long id, Authentication auth) {
+        VocabularyBook book = bookService.getBook(id, userId(auth));
+        return book != null ? ResponseEntity.ok(book) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VocabularyBook> updateBook(
-            @PathVariable("id") Long id,
-            @RequestBody VocabularyBook payload
-    ) {
+    public ResponseEntity<VocabularyBook> updateBook(@PathVariable("id") Long id,
+                                                      @RequestBody VocabularyBook payload,
+                                                      Authentication auth) {
         if (payload == null || payload.getTitle() == null || payload.getTitle().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
+        VocabularyBook updated = bookService.updateBookTitle(id, payload.getTitle().trim(), userId(auth));
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    }
 
-        VocabularyBook updated = bookService.updateBookTitle(id, payload.getTitle().trim());
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable("id") Long id, Authentication auth) {
+        return bookService.deleteBook(id, userId(auth))
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 }

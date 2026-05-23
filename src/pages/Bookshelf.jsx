@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
+import { useAuth } from '../context/AuthContext';
 
 /* ─── styled ─── */
 
@@ -12,11 +13,43 @@ const Container = styled.div`
   padding: 48px 32px;
 `;
 
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+`;
+
 const Title = styled.h1`
   font-size: 1.8rem;
   font-weight: 700;
   color: ${p => p.theme.text};
-  margin-bottom: 32px;
+`;
+
+const UserRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`;
+
+const EmailLabel = styled.span`
+  font-size: 0.88rem;
+  color: ${p => p.theme.textSecondary};
+`;
+
+const LogoutBtn = styled.button`
+  padding: 7px 16px;
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radiusSm};
+  background: transparent;
+  color: ${p => p.theme.textSecondary};
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  &:hover {
+    background: ${p => p.theme.btnHover};
+    color: ${p => p.theme.text};
+  }
 `;
 
 const Grid = styled.div`
@@ -97,6 +130,7 @@ const Guide = styled.div`
 
 export default function Bookshelf() {
   const navigate = useNavigate();
+  const { auth, logout } = useAuth();
   const [books, setBooks] = useState([]);
   const [ctx, setCtx] = useState(null);
 
@@ -172,9 +206,20 @@ export default function Bookshelf() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <Container>
-      <Title>Vocabulary Bookshelf</Title>
+      <Header>
+        <Title>Vocabulary Bookshelf</Title>
+        <UserRow>
+          <EmailLabel>{auth?.email}</EmailLabel>
+          <LogoutBtn onClick={handleLogout}>Sign Out</LogoutBtn>
+        </UserRow>
+      </Header>
 
       <Grid>
         {books.map(book => (

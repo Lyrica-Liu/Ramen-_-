@@ -1,5 +1,6 @@
 package com.example.vocab.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,11 @@ public class VocabularyBook {
     private Long id;
 
     private String title;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("position asc")
@@ -27,6 +33,9 @@ public class VocabularyBook {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public List<Word> getWords() { return words; }
     public void setWords(List<Word> words) { this.words = words; }
