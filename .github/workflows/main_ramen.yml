@@ -73,7 +73,11 @@ jobs:
           az webapp config appsettings set \
             --resource-group resource \
             --name Ramen \
-            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600
+            --settings \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              DATABASE_USERNAME="${{ secrets.DATABASE_USERNAME }}" \
+              DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}"
           az webapp start --resource-group resource --name Ramen
 
       - name: Deploy JAR via Kudu zip deploy
