@@ -10,14 +10,14 @@ import { useAuth } from '../context/AuthContext';
 const Container = styled.div`
   max-width: 1240px;
   margin: 0 auto;
-  padding: 48px 32px;
+  padding: 32px;
 `;
 
 const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 `;
 
 const Title = styled.h1`
@@ -55,33 +55,33 @@ const LogoutBtn = styled.button`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 22px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 24px;
 `;
 
 const BookCard = styled.div`
   background: ${p => p.theme.panel};
-  border: 1.5px solid ${p => p.theme.border};
+  border: 1px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 28px 22px;
+  padding: 16px;
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.12s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: ${p => p.theme.shadow};
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: ${p => p.theme.text};
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     word-break: break-word;
   }
 
   p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: ${p => p.theme.muted};
   }
 `;
@@ -91,7 +91,7 @@ const CreateBtn = styled.button`
   color: #fff;
   border: none;
   border-radius: ${p => p.theme.radius};
-  padding: 14px 32px;
+  padding: 12px 24px;
   font-weight: 600;
   font-size: 1rem;
   transition: background 0.15s, transform 0.1s;
@@ -99,30 +99,6 @@ const CreateBtn = styled.button`
   &:hover {
     background: ${p => p.theme.primaryStrong};
     transform: translateY(-1px);
-  }
-`;
-
-const Guide = styled.div`
-  margin-top: 40px;
-  background: ${p => p.theme.panel};
-  border: 1.5px solid ${p => p.theme.border};
-  border-radius: ${p => p.theme.radius};
-  padding: 26px 28px;
-  line-height: 1.8;
-
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-
-  ul {
-    padding-left: 22px;
-  }
-
-  li {
-    color: ${p => p.theme.textSecondary};
-    font-size: 0.95rem;
   }
 `;
 
@@ -235,17 +211,6 @@ export default function Bookshelf() {
       </Grid>
 
       <CreateBtn onClick={handleCreate}>+ New Book</CreateBtn>
-
-      <Guide>
-        <h3>Quick Start Guide</h3>
-        <ul>
-          <li>
-            Click <strong>+ New Book</strong> to create a vocabulary book
-          </li>
-          <li>Click a book card to open it and start studying</li>
-          <li>Right-click a book to rename or delete it</li>
-        </ul>
-      </Guide>
 
       {ctx && (
         <ContextMenu

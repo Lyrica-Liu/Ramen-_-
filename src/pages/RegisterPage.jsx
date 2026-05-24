@@ -16,58 +16,59 @@ const Card = styled.div`
   background: ${p => p.theme.panel};
   border: 1px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 40px 36px;
+  padding: 32px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: ${p => p.theme.shadowLg};
+  max-width: 380px;
+  box-shadow: ${p => p.theme.shadow};
 `;
 
 const Title = styled.h1`
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: ${p => p.theme.text};
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 `;
 
 const Subtitle = styled.p`
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: ${p => p.theme.textSecondary};
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 `;
 
 const Label = styled.label`
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: ${p => p.theme.text};
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid ${p => p.theme.border};
+  padding: 11px 12px;
+  border: 1px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radiusSm};
-  font-size: 0.97rem;
+  font-size: 0.95rem;
   outline: none;
   background: #fff;
   margin-bottom: 16px;
 
   &:focus {
     border-color: ${p => p.theme.primary};
+    box-shadow: 0 0 0 2px ${p => p.theme.primaryMuted};
   }
 `;
 
 const SubmitBtn = styled.button`
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   background: ${p => p.theme.primary};
   color: #fff;
   border: none;
   border-radius: ${p => p.theme.radiusSm};
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 8px;
   transition: background 0.15s;
 
   &:hover:not(:disabled) {
@@ -148,8 +149,7 @@ export default function RegisterPage() {
   return (
     <Page>
       <Card>
-        <Title>Create account</Title>
-        <Subtitle>Start tracking your vocabulary</Subtitle>
+        <Title>Create Account</Title>
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 
@@ -166,12 +166,12 @@ export default function RegisterPage() {
           <Label>Password</Label>
           <Input
             type="password"
-            placeholder="Min. 6 characters"
+            placeholder="••••••••"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <Label>Confirm Password</Label>
+          <Label>Confirm</Label>
           <Input
             type="password"
             placeholder="••••••••"
