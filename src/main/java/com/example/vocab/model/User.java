@@ -2,6 +2,7 @@ package com.example.vocab.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +19,14 @@ public class User {
     @JsonIgnore
     private String password;
 
+    @Column
+    @JsonIgnore
+    private String resetToken;
+
+    @Column
+    @JsonIgnore
+    private LocalDateTime resetTokenExpiry;
+
     public User() {}
 
     public User(String email, String password) {
@@ -33,4 +42,10 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 }

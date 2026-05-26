@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuth } from '../context/AuthContext';
 
 const Page = styled.div`
   min-height: 100vh;
@@ -91,6 +90,30 @@ const ErrorMsg = styled.p`
   margin-bottom: 16px;
 `;
 
+const SuccessMsg = styled.div`
+  font-size: 0.9rem;
+  color: ${p => p.theme.easyText};
+  background: ${p => p.theme.easyBg};
+  border: 1px solid ${p => p.theme.easyBorder};
+  border-radius: ${p => p.theme.radiusSm};
+  padding: 12px 14px;
+  margin-bottom: 16px;
+
+  strong {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  code {
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+`;
+
 const Footer = styled.p`
   text-align: center;
   font-size: 0.9rem;
@@ -105,43 +128,33 @@ const Footer = styled.p`
   }
 `;
 
-const ForgotLink = styled(Link)`
-  display: block;
-  text-align: center;
-  font-size: 0.9rem;
-  color: ${p => p.theme.primary};
-  font-weight: 600;
-  text-decoration: none;
-  margin-top: 12px;
-  margin-bottom: 16px;
-  &:hover { text-decoration: underline; }
-`;
-
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetToken, setResetToken] = useState('');
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    if (!email.trim()) {
+      setError('Email required');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Request failed');
         return;
       }
-      login(data.token, data.email);
-      navigate('/');
+      setResetToken(data.resetToken);
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -149,39 +162,51 @@ export default function LoginPage() {
     }
   };
 
+  const handleReset = () => {
+    navigate('/reset-password', { state: { resetToken } });
+  };
+
   return (
     <Page>
       <Card>
-        <Title>Sign In</Title>
+        <Title>Reset Password</Title>
+        <Subtitle>Enter your email to get a reset code</Subtitle>
 
-        {error && <ErrorMsg>{error}</ErrorMsg>}
+        {resetToken && (
+          <>
+            <SuccessMsg>
+              <strong>Reset code generated!</strong>
+              Copy this code: <code>{resetToken}</code>
+              <div style={{ marginTop: '12px' }}>
+                <SubmitBtn onClick={handleReset}>Continue to Reset</SubmitBtn>
+              </div>
+            </SuccessMsg>
+          </>
+        )}
 
-        <form onSubmit={handleSubmit}>
-          <Label>Email</Label>
-          <Input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
-          <Label>Password</Label>
-          <Input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <ForgotLink to="/forgot-password">Forgot password?</ForgotLink>
-          <SubmitBtn type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
-          </SubmitBtn>
-        </form>
+        {!resetToken && (
+          <>
+            {error && <ErrorMsg>{error}</ErrorMsg>}
+
+            <form onSubmit={handleSubmit}>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                autoFocus
+              />
+              <SubmitBtn type="submit" disabled={loading}>
+                {loading ? 'Sending…' : 'Send Reset Code'}
+              </SubmitBtn>
+            </form>
+          </>
+        )}
 
         <Footer>
-          No account? <Link to="/register">Create one</Link>
+          Remember password? <Link to="/login">Sign in</Link>
         </Footer>
       </Card>
     </Page>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,12 +27,6 @@ const Title = styled.h1`
   font-weight: 700;
   color: ${p => p.theme.text};
   margin-bottom: 4px;
-`;
-
-const Subtitle = styled.p`
-  font-size: 0.9rem;
-  color: ${p => p.theme.textSecondary};
-  margin-bottom: 24px;
 `;
 
 const Label = styled.label`
@@ -105,39 +99,41 @@ const Footer = styled.p`
   }
 `;
 
-const ForgotLink = styled(Link)`
-  display: block;
-  text-align: center;
-  font-size: 0.9rem;
-  color: ${p => p.theme.primary};
-  font-weight: 600;
-  text-decoration: none;
-  margin-top: 12px;
-  margin-bottom: 16px;
-  &:hover { text-decoration: underline; }
-`;
-
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [resetToken, setResetToken] = useState(location.state?.resetToken || '');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    if (!resetToken.trim()) {
+      setError('Reset code required');
+      return;
+    }
+    if (password !== confirm) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ resetToken, newPassword: password }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Reset failed');
         return;
       }
       login(data.token, data.email);
@@ -152,21 +148,21 @@ export default function LoginPage() {
   return (
     <Page>
       <Card>
-        <Title>Sign In</Title>
+        <Title>Set New Password</Title>
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 
         <form onSubmit={handleSubmit}>
-          <Label>Email</Label>
+          <Label>Reset Code</Label>
           <Input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            type="text"
+            placeholder="Paste your reset code"
+            value={resetToken}
+            onChange={e => setResetToken(e.target.value)}
             required
             autoFocus
           />
-          <Label>Password</Label>
+          <Label>New Password</Label>
           <Input
             type="password"
             placeholder="••••••••"
@@ -174,14 +170,21 @@ export default function LoginPage() {
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <ForgotLink to="/forgot-password">Forgot password?</ForgotLink>
+          <Label>Confirm</Label>
+          <Input
+            type="password"
+            placeholder="••••••••"
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            required
+          />
           <SubmitBtn type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Resetting…' : 'Reset Password'}
           </SubmitBtn>
         </form>
 
         <Footer>
-          No account? <Link to="/register">Create one</Link>
+          <Link to="/login">Back to Sign In</Link>
         </Footer>
       </Card>
     </Page>

@@ -27,6 +27,19 @@ public class AuthController {
         public void setPassword(String password) { this.password = password; }
     }
 
+    public static class ResetRequest {
+        private String email;
+        private String resetToken;
+        private String newPassword;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getResetToken() { return resetToken; }
+        public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest req) {
         if (req.getEmail() == null || req.getEmail().trim().isEmpty()
@@ -49,6 +62,30 @@ public class AuthController {
             return ResponseEntity.ok(authService.login(req.getEmail().trim().toLowerCase(), req.getPassword()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody AuthRequest req) {
+        if (req.getEmail() == null || req.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email required"));
+        }
+        try {
+            return ResponseEntity.ok(authService.requestPasswordReset(req.getEmail().trim().toLowerCase()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetRequest req) {
+        if (req.getResetToken() == null || req.getNewPassword() == null || req.getNewPassword().length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Valid reset token and password (min 6 characters) required"));
+        }
+        try {
+            return ResponseEntity.ok(authService.resetPassword(req.getResetToken(), req.getNewPassword()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
