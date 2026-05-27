@@ -2,12 +2,6 @@ import styled from 'styled-components';
 
 /* ─── helpers ─── */
 
-function levelColor(level) {
-  if (level <= 2) return '#ef4444';
-  if (level <= 4) return '#f59e0b';
-  return '#22c55e';
-}
-
 function levelLabel(level) {
   if (level <= 2) return 'Beginner';
   if (level <= 4) return 'Familiar';
@@ -238,49 +232,6 @@ const CompleteBox = styled.div`
   }
 `;
 
-const DetailBox = styled.div`
-  background: ${p => p.theme.panel};
-  border: 1px solid ${p => p.theme.border};
-  border-radius: ${p => p.theme.radiusSm};
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  box-shadow: ${p => p.theme.shadow};
-`;
-
-const DetailRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-`;
-
-const DetailLabel = styled.span`
-  color: ${p => p.theme.muted};
-  font-weight: 500;
-`;
-
-const DetailValue = styled.span`
-  color: ${p => p.theme.text};
-  font-weight: 600;
-`;
-
-const LevelBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const LevelDot = styled.span`
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: ${p => p.$color};
-  flex-shrink: 0;
-`;
-
 const HintRow = styled.div`
   text-align: center;
   font-size: 0.75rem;
@@ -380,29 +331,6 @@ export default function FlashCards({
       <CardIndex>
         {message ? (total === 0 ? 'No words yet' : '–') : `${position} / ${total}`}
       </CardIndex>
-
-      {/* Word detail */}
-      {word && !message && (
-        <DetailBox>
-          <DetailRow>
-            <DetailLabel>Familiarity</DetailLabel>
-            <DetailValue>
-              <LevelBadge>
-                <LevelDot $color={levelColor(level)} />
-                Level {level}/6 · {levelLabel(level)}
-              </LevelBadge>
-            </DetailValue>
-          </DetailRow>
-          <DetailRow>
-            <DetailLabel>Added</DetailLabel>
-            <DetailValue>{formatDate(word.createdTime)}</DetailValue>
-          </DetailRow>
-          <DetailRow>
-            <DetailLabel>Next review</DetailLabel>
-            <DetailValue>{formatNextReview(word.nextReviewTime)}</DetailValue>
-          </DetailRow>
-        </DetailBox>
-      )}
 
       {/* Keyboard hints */}
       {!disabled && (

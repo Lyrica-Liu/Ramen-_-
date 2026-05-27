@@ -19,9 +19,9 @@ export const theme = {
   shadowLg: '0 1px 4px rgba(0,0,0,0.06)',
   shadowPrimary: '0 2px 8px rgba(109,163,255,0.15)',
   level: {
-    low: '#F5F7FB',
-    mid: '#FAFBFC',
-    high: '#F0F4FF',
+    low: '#FFE8E8',
+    mid: '#FFF5E8',
+    high: '#E8F5FF',
   },
   activeItem: '#E8F0FF',
   selectedItem: '#D9E5FF',
