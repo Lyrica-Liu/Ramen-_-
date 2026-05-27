@@ -319,11 +319,11 @@ export default function FlashCards({
         </HardBtn>
         <OkayBtn disabled={disabled} onClick={onOkay}>
           Okay
-          <BtnLabel>S · level +1</BtnLabel>
+          <BtnLabel>S · level →</BtnLabel>
         </OkayBtn>
         <EasyBtn disabled={disabled} onClick={onEasy}>
           Easy
-          <BtnLabel>D · level +2</BtnLabel>
+          <BtnLabel>D · level +1</BtnLabel>
         </EasyBtn>
       </ReviewRow>
 

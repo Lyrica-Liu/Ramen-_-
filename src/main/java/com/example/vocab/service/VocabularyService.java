@@ -127,10 +127,13 @@ public class VocabularyService {
 
         int currentLevel = word.getReviewLevel() == null || word.getReviewLevel() < 1 ? 1 : word.getReviewLevel();
         int difficultyScore = word.getDifficultyScore() == null ? 0 : word.getDifficultyScore();
+
         if ("hard".equalsIgnoreCase(result)) {
-            currentLevel = 1;
+            currentLevel = Math.max(1, currentLevel - 1);
             difficultyScore = Math.min(10, difficultyScore + 1);
-        } else {
+        } else if ("okay".equalsIgnoreCase(result)) {
+            // Okay is a stabilizer: no level change, just reschedule at current level
+        } else if ("easy".equalsIgnoreCase(result)) {
             LocalDate today = LocalDate.now();
             LocalDate progressDate = word.getLevelProgressDate();
             int progressCount = word.getLevelProgressCount() == null ? 0 : word.getLevelProgressCount();
@@ -154,7 +157,7 @@ public class VocabularyService {
         word.setReviewLevel(currentLevel);
         word.setDifficultyScore(difficultyScore);
         word.setLastReviewedTime(now);
-        word.setNextReviewTime(calculateNextReviewTime(now, currentLevel));
+        word.setNextReviewTime(calculateNextReviewTime(now, currentLevel, difficultyScore));
         Word savedWord = wordRepository.save(word);
         progressService.recordReviewActivity(bookId, 1);
         return savedWord;
@@ -195,19 +198,28 @@ public class VocabularyService {
         return true;
     }
 
-    private LocalDateTime calculateNextReviewTime(LocalDateTime baseTime, int level) {
-        return switch (level) {
-            case 1 -> baseTime.plusMinutes(10);
-            case 2 -> baseTime.plusDays(1);
-            case 3 -> baseTime.plusDays(3);
-            case 4 -> baseTime.plusDays(7);
-            case 5 -> baseTime.plusDays(14);
-            default -> baseTime.plusDays(30);
+    private LocalDateTime calculateNextReviewTime(LocalDateTime baseTime, int level, int difficultyScore) {
+        int baseMinutes = switch (level) {
+            case 1 -> 10;
+            case 2 -> 1440;      // 1 day in minutes
+            case 3 -> 4320;      // 3 days
+            case 4 -> 10080;     // 7 days
+            case 5 -> 20160;     // 14 days
+            default -> 43200;    // 30 days
         };
+
+        // Scale by difficulty: harder words (high score) get longer intervals
+        double scale = 1.0;
+        if (difficultyScore >= 8) scale = 1.5;      // 50% longer for very difficult
+        else if (difficultyScore >= 5) scale = 1.25; // 25% longer for difficult
+        else if (difficultyScore <= 2) scale = 0.7;  // 30% shorter for very easy
+
+        int adjustedMinutes = (int) (baseMinutes * scale);
+        return baseTime.plusMinutes(adjustedMinutes);
     }
 
     public List<Word> getDueWords(Long bookId) {
-        return wordRepository.findByBookIdAndNextReviewTimeLessThanEqualOrderByNextReviewTimeAsc(bookId, LocalDateTime.now());
+        return wordRepository.findDueWordsPrioritizedByDifficulty(bookId, LocalDateTime.now());
     }
 
     public void clearWords(Long bookId) {

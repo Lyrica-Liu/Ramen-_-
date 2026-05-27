@@ -133,7 +133,7 @@ public class VocabularyController {
         }
 
         String result = request.getResult().trim().toLowerCase();
-        if (!"easy".equals(result) && !"hard".equals(result)) {
+        if (!"easy".equals(result) && !"hard".equals(result) && !"okay".equals(result)) {
             return ResponseEntity.badRequest().build();
         }
 
