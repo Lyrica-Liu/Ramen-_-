@@ -99,7 +99,7 @@ public class VocabularyService {
             word.setBook(book);
             word.setPosition(position++);
             word.setReviewLevel(1);
-            word.setNextReviewTime(now);
+            word.setNextReviewTime(now.plusDays(1));
             word.setLastReviewedTime(null);
             word.setCreatedTime(now);
             word.setLevelProgressDate(now.toLocalDate());
