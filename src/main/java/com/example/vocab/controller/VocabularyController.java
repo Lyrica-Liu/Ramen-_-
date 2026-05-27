@@ -2,9 +2,7 @@ package com.example.vocab.controller;
 
 import com.example.vocab.model.Word;
 import com.example.vocab.security.UserPrincipal;
-import com.example.vocab.service.BookService;
-import com.example.vocab.service.ProgressService;
-import com.example.vocab.service.VocabularyService;
+import com.example.vocab.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,38 +18,47 @@ import java.util.List;
 public class VocabularyController {
     private final VocabularyService vocabularyService;
     private final ProgressService progressService;
+    private final BookService bookService;
+    private final WordSearchService wordSearchService;
+    private final DistractorGenerationService distractorService;
+    private final MCQuestionService mcQuestionService;
+
+    public VocabularyController(VocabularyService vocabularyService,
+                                 ProgressService progressService,
+                                 BookService bookService,
+                                 WordSearchService wordSearchService,
+                                 DistractorGenerationService distractorService,
+                                 MCQuestionService mcQuestionService) {
+        this.vocabularyService = vocabularyService;
+        this.progressService = progressService;
+        this.bookService = bookService;
+        this.wordSearchService = wordSearchService;
+        this.distractorService = distractorService;
+        this.mcQuestionService = mcQuestionService;
+    }
 
     public static class WordUpdateRequest {
         private String term;
         private String translation;
 
-        public String getTerm() {
-            return term;
-        }
-
-        public void setTerm(String term) {
-            this.term = term;
-        }
-
-        public String getTranslation() {
-            return translation;
-        }
-
-        public void setTranslation(String translation) {
-            this.translation = translation;
-        }
+        public String getTerm() { return term; }
+        public void setTerm(String term) { this.term = term; }
+        public String getTranslation() { return translation; }
+        public void setTranslation(String translation) { this.translation = translation; }
     }
 
     public static class ReviewRequest {
         private String result;
 
-        public String getResult() {
-            return result;
-        }
+        public String getResult() { return result; }
+        public void setResult(String result) { this.result = result; }
+    }
 
-        public void setResult(String result) {
-            this.result = result;
-        }
+    public static class SearchRequest {
+        private String searchTerm;
+
+        public String getSearchTerm() { return searchTerm; }
+        public void setSearchTerm(String searchTerm) { this.searchTerm = searchTerm; }
     }
 
     public static class ProgressActivityRequest {
@@ -59,39 +66,12 @@ public class VocabularyController {
         private Integer amount;
         private Long wordId;
 
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public Integer getAmount() {
-            return amount;
-        }
-
-        public void setAmount(Integer amount) {
-            this.amount = amount;
-        }
-
-        public Long getWordId() {
-            return wordId;
-        }
-
-        public void setWordId(Long wordId) {
-            this.wordId = wordId;
-        }
-    }
-
-    private final BookService bookService;
-
-    public VocabularyController(VocabularyService vocabularyService,
-                                 ProgressService progressService,
-                                 BookService bookService) {
-        this.vocabularyService = vocabularyService;
-        this.progressService = progressService;
-        this.bookService = bookService;
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        public Integer getAmount() { return amount; }
+        public void setAmount(Integer amount) { this.amount = amount; }
+        public Long getWordId() { return wordId; }
+        public void setWordId(Long wordId) { this.wordId = wordId; }
     }
 
     @ModelAttribute
@@ -217,5 +197,67 @@ public class VocabularyController {
         }
 
         return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<WordSearchResponse> searchWord(@RequestParam String term) {
+        if (term == null || term.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        WordSearchService.WordSearchResult result = wordSearchService.searchWord(term);
+        if (result == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<String> distractors = distractorService.generateDistractors(
+                result.getDefinition(), result.getDefinition(), 3);
+
+        return ResponseEntity.ok(new WordSearchResponse(
+                result.getTerm(),
+                result.getDefinition(),
+                result.getExample(),
+                distractors,
+                result.getApiSource()
+        ));
+    }
+
+    @PostMapping("/from-search")
+    public ResponseEntity<Word> addSearchedWord(
+            @PathVariable("bookId") Long bookId,
+            @RequestBody SearchRequest request
+    ) {
+        if (request == null || request.getSearchTerm() == null || request.getSearchTerm().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Word word = vocabularyService.addSearchedWord(bookId, request.getSearchTerm());
+        if (word == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(word);
+    }
+
+    public static class WordSearchResponse {
+        private String term;
+        private String definition;
+        private String example;
+        private List<String> distractors;
+        private String apiSource;
+
+        public WordSearchResponse(String term, String definition, String example, List<String> distractors, String apiSource) {
+            this.term = term;
+            this.definition = definition;
+            this.example = example;
+            this.distractors = distractors;
+            this.apiSource = apiSource;
+        }
+
+        public String getTerm() { return term; }
+        public String getDefinition() { return definition; }
+        public String getExample() { return example; }
+        public List<String> getDistractors() { return distractors; }
+        public String getApiSource() { return apiSource; }
     }
 }

@@ -6,6 +6,7 @@ import { StudyProvider } from './context/StudyContext';
 import { UIProvider } from './context/UIContext';
 import Bookshelf from './pages/Bookshelf';
 import BookView from './pages/BookView';
+import WordSearchPage from './pages/WordSearchPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -76,6 +77,11 @@ export default function App() {
                     <BookView />
                   </UIProvider>
                 </StudyProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/book/:bookId/search" element={
+              <ProtectedRoute>
+                <WordSearchPage />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />

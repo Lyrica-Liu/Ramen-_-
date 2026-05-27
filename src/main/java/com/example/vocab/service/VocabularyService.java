@@ -1,7 +1,6 @@
 package com.example.vocab.service;
 
-import com.example.vocab.model.VocabularyBook;
-import com.example.vocab.model.Word;
+import com.example.vocab.model.*;
 import com.example.vocab.repository.WordRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +14,19 @@ public class VocabularyService {
     private final WordRepository wordRepository;
     private final BookService bookService;
     private final ProgressService progressService;
+    private final WordSearchService wordSearchService;
+    private final DistractorGenerationService distractorService;
+    private final MCQuestionService mcQuestionService;
 
-    public VocabularyService(WordRepository wordRepository, BookService bookService, ProgressService progressService) {
+    public VocabularyService(WordRepository wordRepository, BookService bookService, ProgressService progressService,
+                             WordSearchService wordSearchService, DistractorGenerationService distractorService,
+                             MCQuestionService mcQuestionService) {
         this.wordRepository = wordRepository;
         this.bookService = bookService;
         this.progressService = progressService;
+        this.wordSearchService = wordSearchService;
+        this.distractorService = distractorService;
+        this.mcQuestionService = mcQuestionService;
     }
 
     public static class DailyStats {
@@ -109,6 +116,51 @@ public class VocabularyService {
         }
         progressService.recordAddedWords(bookId, added.size());
         return added;
+    }
+
+    public Word addSearchedWord(Long bookId, String searchTerm) {
+        VocabularyBook book = bookService.getBook(bookId);
+        if (book == null) {
+            return null;
+        }
+
+        WordSearchService.WordSearchResult searchResult = wordSearchService.searchWord(searchTerm);
+        if (searchResult == null) {
+            return null;
+        }
+
+        List<String> distractors = distractorService.generateDistractors(
+                searchResult.getDefinition(), searchResult.getDefinition(), 3);
+
+        MCQuestion mcQuestion = mcQuestionService.createMCQuestion(
+                searchResult.getDefinition(), distractors, "");
+
+        WordApiMetadata apiMetadata = new WordApiMetadata();
+        apiMetadata.setApiSource(searchResult.getApiSource());
+        apiMetadata.setApiDefinition(searchResult.getDefinition());
+        apiMetadata.setExampleSentence(searchResult.getExample());
+
+        Word word = new Word();
+        word.setTerm(searchResult.getTerm());
+        word.setTranslation(searchResult.getDefinition());
+        word.setBook(book);
+        word.setPosition(book.getWords().size());
+        word.setMcQuestion(mcQuestion);
+        word.setApiMetadata(apiMetadata);
+
+        word.setReviewLevel(1);
+        LocalDateTime now = LocalDateTime.now();
+        word.setCreatedTime(now);
+        word.setLevelProgressDate(now.toLocalDate());
+        word.setLevelProgressCount(0);
+        word.setDifficultyScore(0);
+
+        mcQuestion.setWord(word);
+        apiMetadata.setWord(word);
+
+        Word savedWord = wordRepository.save(word);
+        progressService.recordAddedWords(bookId, 1);
+        return savedWord;
     }
 
     public List<DailyStats> getDailyStats(Long bookId, int days) {

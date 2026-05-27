@@ -41,6 +41,12 @@ public class Word {
     @JsonIgnore
     private VocabularyBook book;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "word")
+    private MCQuestion mcQuestion;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "word")
+    private WordApiMetadata apiMetadata;
+
     public Word() {}
 
     public Word(String term, String translation) {
@@ -93,4 +99,10 @@ public class Word {
 
     public VocabularyBook getBook() { return book; }
     public void setBook(VocabularyBook book) { this.book = book; }
+
+    public MCQuestion getMcQuestion() { return mcQuestion; }
+    public void setMcQuestion(MCQuestion mcQuestion) { this.mcQuestion = mcQuestion; }
+
+    public WordApiMetadata getApiMetadata() { return apiMetadata; }
+    public void setApiMetadata(WordApiMetadata apiMetadata) { this.apiMetadata = apiMetadata; }
 }

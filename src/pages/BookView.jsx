@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -1119,8 +1119,8 @@ export default function BookView() {
 
             <RightPanel>
               <TabBar>
-                <TabBtn $active={activeTab === 'add'} onClick={() => handleSwitchTab('add')}>
-                  Add
+                <TabBtn $active={activeTab === 'search'} onClick={() => window.location.href = `/book/${bookId}/search`}>
+                  Search
                 </TabBtn>
                 <TabBtn $active={activeTab === 'flash'} onClick={() => handleSwitchTab('flash')}>
                   Flash Cards
