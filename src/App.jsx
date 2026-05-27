@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { theme } from './theme';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { StudyProvider } from './context/StudyContext';
+import { UIProvider } from './context/UIContext';
 import Bookshelf from './pages/Bookshelf';
 import BookView from './pages/BookView';
 import LoginPage from './pages/LoginPage';
@@ -67,7 +69,15 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/" element={<ProtectedRoute><Bookshelf /></ProtectedRoute>} />
             <Route path="/bookshelf" element={<ProtectedRoute><Bookshelf /></ProtectedRoute>} />
-            <Route path="/book/:bookId" element={<ProtectedRoute><BookView /></ProtectedRoute>} />
+            <Route path="/book/:bookId" element={
+              <ProtectedRoute>
+                <StudyProvider>
+                  <UIProvider>
+                    <BookView />
+                  </UIProvider>
+                </StudyProvider>
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
