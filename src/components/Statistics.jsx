@@ -66,7 +66,7 @@ const Weekday = styled.div`
 const DayGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 5px;
 `;
 
 const DayCell = styled.div`
@@ -74,8 +74,8 @@ const DayCell = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: ${p => p.theme.radiusSm};
-  font-size: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: default;
   background: ${p => {
