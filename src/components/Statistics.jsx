@@ -5,7 +5,7 @@ import * as api from '../api';
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 `;
 
 const Header = styled.div`
@@ -45,14 +45,14 @@ const CalendarBox = styled.div`
   background: ${p => p.theme.panel};
   border: 1px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 18px;
+  padding: 12px;
 `;
 
 const WeekdayRow = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 5px;
+  margin-bottom: 8px;
 `;
 
 const Weekday = styled.div`
@@ -96,14 +96,14 @@ const DayCell = styled.div`
 const StreakBox = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 `;
 
 const StreakCard = styled.div`
   background: ${p => p.theme.panel};
   border: 1px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 16px;
+  padding: 12px;
   text-align: center;
 `;
 
@@ -115,7 +115,7 @@ const StreakLabel = styled.div`
 `;
 
 const StreakNumber = styled.div`
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: ${p => p.theme.primary};
 `;
