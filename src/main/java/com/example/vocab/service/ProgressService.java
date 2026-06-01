@@ -81,14 +81,14 @@ public class ProgressService {
     }
 
     public ProgressHeader recordAddedWords(Long bookId, int amount) {
-        if (amount <= 0) {
-            return getHeader(bookId);
-        }
+        if (amount <= 0) return getHeader(bookId);
         BookDailyProgress progress = getOrCreateDailyProgress(bookId, LocalDate.now());
         int current = progress.getAddedCount() == null ? 0 : progress.getAddedCount();
         progress.setAddedCount(current + amount);
         progressRepository.save(progress);
-        return getHeader(bookId);
+        int addedToday = progress.getAddedCount();
+        int reviewedToday = progress.getReviewedCount() == null ? 0 : progress.getReviewedCount();
+        return new ProgressHeader(addedToday, reviewedToday, 0);
     }
 
     public ProgressHeader recordReviewActivity(Long bookId, int amount) {

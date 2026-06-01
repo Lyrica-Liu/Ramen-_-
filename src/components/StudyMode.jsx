@@ -1,88 +1,95 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import styled from 'styled-components';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import styled, { keyframes, css } from 'styled-components';
+
+/* ─── flip animations ─── */
+
+const flipOut = keyframes`
+  from { transform: perspective(900px) rotateY(0deg); opacity: 1; }
+  to   { transform: perspective(900px) rotateY(90deg); opacity: 0; }
+`;
+
+const flipIn = keyframes`
+  from { transform: perspective(900px) rotateY(-90deg); opacity: 0; }
+  to   { transform: perspective(900px) rotateY(0deg); opacity: 1; }
+`;
 
 /* ─── styled ─── */
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 4px 2px;
+  gap: 18px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 4px 2px 24px;
 `;
 
-const IdleBox = styled.div`
+const CenterBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 16px;
-  padding: 48px 24px;
+  padding: 56px 24px;
   text-align: center;
 `;
 
 const IdleTitle = styled.h2`
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: ${p => p.theme.text};
   letter-spacing: -0.02em;
 `;
 
-const IdleSubtitle = styled.p`
+const IdleSub = styled.p`
   font-size: 0.95rem;
   color: ${p => p.theme.textSecondary};
-  max-width: 340px;
-  line-height: 1.6;
+  max-width: 320px;
+  line-height: 1.65;
 `;
 
-const StartBtn = styled.button`
-  padding: 14px 40px;
-  background: ${p => p.theme.primary};
+const PillBtn = styled.button`
+  padding: 13px 38px;
+  background: linear-gradient(135deg, ${p => p.theme.primary} 0%, ${p => p.theme.primaryStrong} 100%);
   color: #fff;
   border: none;
-  border-radius: ${p => p.theme.radiusSm};
+  border-radius: 999px;
   font-weight: 700;
   font-size: 1rem;
+  box-shadow: ${p => p.theme.shadowPrimary};
   transition: all 0.16s ease;
 
   &:hover:not(:disabled) {
-    background: ${p => p.theme.primaryStrong};
-    transform: translateY(-1px);
-    box-shadow: ${p => p.theme.shadowPrimary};
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.38);
   }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
+  &:disabled { opacity: 0.45; cursor: default; }
 `;
 
-const NotEnoughBox = styled.div`
-  padding: 20px;
+const NeedMore = styled.div`
+  padding: 24px;
   text-align: center;
   color: ${p => p.theme.textSecondary};
   font-size: 0.92rem;
-  line-height: 1.6;
-
-  strong {
-    color: ${p => p.theme.text};
-  }
+  line-height: 1.65;
+  strong { color: ${p => p.theme.text}; }
 `;
 
-const Header = styled.div`
+/* progress */
+const ProgressRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 `;
 
-const ProgressTrack = styled.div`
+const Track = styled.div`
   flex: 1;
-  height: 6px;
+  height: 7px;
   background: ${p => p.theme.progressTrack};
   border-radius: 99px;
   overflow: hidden;
 `;
 
-const ProgressFill = styled.div`
+const Fill = styled.div`
   height: 100%;
   background: linear-gradient(90deg, ${p => p.theme.progressGradient[0]}, ${p => p.theme.progressGradient[1]});
   border-radius: 99px;
@@ -91,33 +98,43 @@ const ProgressFill = styled.div`
 `;
 
 const Counter = styled.div`
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: ${p => p.theme.textSecondary};
   white-space: nowrap;
 `;
 
-const QuestionCard = styled.div`
-  background: ${p => p.theme.bg};
+/* the main card */
+const Card = styled.div`
+  background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radius};
-  padding: 28px 26px;
-  min-height: 120px;
+  padding: 32px 28px;
+  box-shadow: ${p => p.theme.shadowLg};
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  animation: ${p => {
+    if (p.$anim === 'out') return css`${flipOut} 0.22s ease forwards`;
+    if (p.$anim === 'in')  return css`${flipIn}  0.22s ease forwards`;
+    return 'none';
+  }};
 `;
 
-const QuestionLabel = styled.div`
-  font-size: 0.75rem;
+/* front face */
+const QLabel = styled.div`
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: ${p => p.theme.primary};
-  margin-bottom: 10px;
 `;
 
-const DefinitionText = styled.div`
-  font-size: 1.05rem;
+const DefText = styled.div`
+  font-size: 1.1rem;
   color: ${p => p.theme.text};
-  line-height: 1.65;
+  line-height: 1.7;
   white-space: pre-line;
 `;
 
@@ -126,134 +143,82 @@ const ChoicesGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 `;
 
 const ChoiceBtn = styled.button`
-  padding: 16px 14px;
+  padding: 16px 12px;
   border-radius: ${p => p.theme.radiusSm};
-  font-size: 0.97rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-align: center;
+  border: 1.5px solid ${p => p.theme.border};
+  background: ${p => p.theme.bg};
+  color: ${p => p.theme.text};
   transition: all 0.14s ease;
-  border: 2px solid
-    ${p => {
-      if (p.$correct) return p.theme.correctBorder;
-      if (p.$wrong) return p.theme.wrongBorder;
-      return p.theme.border;
-    }};
-  background: ${p => {
-    if (p.$correct) return p.theme.correctBg;
-    if (p.$wrong) return p.theme.wrongBg;
-    return p.theme.panel;
-  }};
-  color: ${p => {
-    if (p.$correct) return p.theme.correctText;
-    if (p.$wrong) return p.theme.wrongText;
-    return p.theme.text;
-  }};
-  cursor: ${p => (p.$answered ? 'default' : 'pointer')};
   box-shadow: ${p => p.theme.shadow};
 
-  &:hover:not(:disabled):not([data-answered='true']) {
+  &:hover:not(:disabled) {
     border-color: ${p => p.theme.primary};
     background: ${p => p.theme.primaryMuted};
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: ${p => p.theme.shadowLg};
+    color: ${p => p.theme.primary};
   }
+  &:active:not(:disabled) { transform: translateY(0); }
 `;
 
-const RevealCard = styled.div`
-  background: ${p => p.theme.panel};
-  border: 1.5px solid ${p => p.theme.completeBorder};
-  border-radius: ${p => p.theme.radius};
-  padding: 20px 22px;
+/* back face */
+const Feedback = styled.div`
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: ${p => (p.$correct ? p.theme.correctText : p.theme.wrongText)};
+  letter-spacing: -0.01em;
 `;
 
 const RevealWord = styled.div`
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 800;
   color: ${p => p.theme.text};
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 `;
 
-const RevealPos = styled.span`
+const PosPill = styled.span`
   display: inline-block;
-  padding: 2px 9px;
+  padding: 3px 11px;
   background: ${p => p.theme.primaryMuted};
   color: ${p => p.theme.primary};
   border-radius: 999px;
-  font-size: 0.73rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
+  letter-spacing: 0.05em;
 `;
 
 const RevealDef = styled.div`
-  font-size: 0.93rem;
+  font-size: 0.97rem;
   color: ${p => p.theme.textSecondary};
-  line-height: 1.6;
+  line-height: 1.65;
   white-space: pre-line;
 `;
 
-const ResultFeedback = styled.div`
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: ${p => (p.$correct ? p.theme.correctText : p.theme.wrongText)};
-  margin-bottom: 8px;
-`;
-
-const NextBtn = styled.button`
-  width: 100%;
-  padding: 14px;
-  background: ${p => p.theme.primary};
-  color: #fff;
-  border: none;
-  border-radius: ${p => p.theme.radiusSm};
-  font-weight: 700;
-  font-size: 0.97rem;
-  transition: all 0.16s ease;
-
-  &:hover {
-    background: ${p => p.theme.primaryStrong};
-    transform: translateY(-1px);
-    box-shadow: ${p => p.theme.shadowPrimary};
-  }
-`;
-
-const CompleteBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 40px 24px;
-  text-align: center;
-`;
-
-const CompleteTitle = styled.div`
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: ${p => p.theme.text};
-  letter-spacing: -0.02em;
-`;
-
-const ScoreBadge = styled.div`
-  font-size: 3rem;
-  font-weight: 900;
-  color: ${p => (p.$pct >= 70 ? p.theme.correctText : p.$pct >= 50 ? p.theme.okayText : p.theme.wrongText)};
-  letter-spacing: -0.03em;
-`;
-
-const ScoreLabel = styled.div`
+const NextBtn = styled(PillBtn)`
+  align-self: center;
+  padding: 12px 44px;
   font-size: 0.95rem;
-  color: ${p => p.theme.textSecondary};
 `;
 
-const RestartBtn = styled(StartBtn)``;
+/* complete screen */
+const ScoreBox = styled(CenterBox)``;
+const ScoreTitle = styled(IdleTitle)``;
+const ScoreNum = styled.div`
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: ${p => (p.$pct >= 70 ? p.theme.correctText : p.$pct >= 50 ? p.theme.okayText : p.theme.wrongText)};
+`;
+const ScoreSub = styled(IdleSub)``;
 
 /* ─── helpers ─── */
 
@@ -268,8 +233,7 @@ function shuffle(arr) {
 
 function buildChoices(studyWords, pos) {
   const correct = studyWords[pos];
-  const pool = studyWords.filter(w => w.id !== correct.id);
-  const distractors = shuffle(pool).slice(0, 3);
+  const distractors = shuffle(studyWords.filter(w => w.id !== correct.id)).slice(0, 3);
   return shuffle([correct, ...distractors]);
 }
 
@@ -277,21 +241,37 @@ function buildChoices(studyWords, pos) {
 
 export default function StudyMode({ words }) {
   const studyable = useMemo(
-    () => words.filter(w => w.translation && w.translation.trim()),
+    () => words.filter(w => w.translation?.trim()),
     [words],
   );
+  const canStudy = studyable.length >= 4;
 
-  const [phase, setPhase] = useState('idle'); // idle | playing | complete
+  const [phase, setPhase] = useState('idle');
   const [studyWords, setStudyWords] = useState([]);
   const [pos, setPos] = useState(0);
   const [choices, setChoices] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [anim, setAnim] = useState('idle'); // idle | out | in
+  const [face, setFace] = useState('question'); // question | result
 
-  const canStudy = studyable.length >= 4;
+  const animRef = useRef(null);
+
   const current = studyWords[pos] ?? null;
-  const isAnswered = selectedId !== null;
   const isCorrect = selectedId !== null && selectedId === current?.id;
+
+  function runFlip(onMidpoint, onDone) {
+    setAnim('out');
+    clearTimeout(animRef.current);
+    animRef.current = setTimeout(() => {
+      onMidpoint();
+      setAnim('in');
+      animRef.current = setTimeout(() => {
+        setAnim('idle');
+        onDone?.();
+      }, 230);
+    }, 220);
+  }
 
   const startStudy = useCallback(() => {
     const sq = shuffle(studyable);
@@ -299,55 +279,58 @@ export default function StudyMode({ words }) {
     setPos(0);
     setChoices(buildChoices(sq, 0));
     setSelectedId(null);
+    setFace('question');
+    setAnim('idle');
     setScore({ correct: 0, total: 0 });
     setPhase('playing');
-  }, [studyable]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [studyable]);
 
-  /* reset to idle if word list changes significantly */
-  useEffect(() => {
-    if (phase === 'playing' && studyable.length < 4) setPhase('idle');
-  }, [studyable.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleChoiceClick(word) {
-    if (isAnswered) return;
+  function handleChoice(word) {
+    if (selectedId !== null || anim !== 'idle') return;
     const correct = word.id === current.id;
     setSelectedId(word.id);
     setScore(prev => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
+    runFlip(() => setFace('result'), null);
   }
 
   function handleNext() {
+    if (anim !== 'idle') return;
     const next = pos + 1;
-    if (next >= studyWords.length) {
-      setPhase('complete');
-    } else {
-      setPos(next);
-      setChoices(buildChoices(studyWords, next));
-      setSelectedId(null);
-    }
+    runFlip(() => {
+      if (next >= studyWords.length) {
+        setPhase('complete');
+      } else {
+        setPos(next);
+        setChoices(buildChoices(studyWords, next));
+        setSelectedId(null);
+        setFace('question');
+      }
+    }, null);
   }
 
-  const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
-  const progressPct = studyWords.length > 0 ? Math.round(((pos + (isAnswered ? 1 : 0)) / studyWords.length) * 100) : 0;
+  const progressPct = studyWords.length > 0
+    ? Math.round(((pos + (face === 'result' ? 1 : 0)) / studyWords.length) * 100)
+    : 0;
+  const scorePct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
 
   /* ── idle ── */
   if (phase === 'idle') {
     return (
       <Wrapper>
         {!canStudy ? (
-          <NotEnoughBox>
-            <strong>Need at least 4 words to start Study Mode.</strong>
-            <br />
-            Add more words using the "Add Word" tab.
-          </NotEnoughBox>
+          <NeedMore>
+            <strong>Add at least 4 words to start Study Mode.</strong>
+            <br />Use the "+ Add Word" tab to build your deck.
+          </NeedMore>
         ) : (
-          <IdleBox>
+          <CenterBox>
             <IdleTitle>Study Mode</IdleTitle>
-            <IdleSubtitle>
-              You'll see a definition and pick the matching word from 4 choices.
-              {studyable.length} cards ready.
-            </IdleSubtitle>
-            <StartBtn onClick={startStudy}>Start Session</StartBtn>
-          </IdleBox>
+            <IdleSub>
+              See a definition — pick the right word from 4 choices.
+              {' '}{studyable.length} cards ready.
+            </IdleSub>
+            <PillBtn onClick={startStudy}>Start Session</PillBtn>
+          </CenterBox>
         )}
       </Wrapper>
     );
@@ -355,17 +338,15 @@ export default function StudyMode({ words }) {
 
   /* ── complete ── */
   if (phase === 'complete') {
-    const msg = pct >= 80 ? 'Excellent!' : pct >= 60 ? 'Good effort!' : 'Keep practicing!';
+    const msg = scorePct >= 80 ? 'Excellent work!' : scorePct >= 60 ? 'Good effort!' : 'Keep practicing!';
     return (
       <Wrapper>
-        <CompleteBox>
-          <CompleteTitle>Session Complete</CompleteTitle>
-          <ScoreBadge $pct={pct}>{pct}%</ScoreBadge>
-          <ScoreLabel>
-            {score.correct} / {score.total} correct — {msg}
-          </ScoreLabel>
-          <RestartBtn onClick={startStudy}>Study Again</RestartBtn>
-        </CompleteBox>
+        <ScoreBox>
+          <ScoreTitle>Session Complete</ScoreTitle>
+          <ScoreNum $pct={scorePct}>{scorePct}%</ScoreNum>
+          <ScoreSub>{score.correct} / {score.total} correct — {msg}</ScoreSub>
+          <PillBtn onClick={startStudy}>Study Again</PillBtn>
+        </ScoreBox>
       </Wrapper>
     );
   }
@@ -373,58 +354,46 @@ export default function StudyMode({ words }) {
   /* ── playing ── */
   return (
     <Wrapper>
-      <Header>
-        <ProgressTrack>
-          <ProgressFill $pct={progressPct} />
-        </ProgressTrack>
-        <Counter>
-          {pos + 1} / {studyWords.length}
-        </Counter>
-      </Header>
+      <ProgressRow>
+        <Track><Fill $pct={progressPct} /></Track>
+        <Counter>{pos + 1} / {studyWords.length}</Counter>
+      </ProgressRow>
 
-      <QuestionCard>
-        <QuestionLabel>What word matches this definition?</QuestionLabel>
-        <DefinitionText>{current?.translation ?? ''}</DefinitionText>
-      </QuestionCard>
-
-      <ChoicesGrid>
-        {choices.map(choice => {
-          const isThis = choice.id === selectedId;
-          const isCorrectChoice = choice.id === current?.id;
-          return (
-            <ChoiceBtn
-              key={choice.id}
-              $correct={isAnswered && isCorrectChoice}
-              $wrong={isAnswered && isThis && !isCorrectChoice}
-              $answered={isAnswered}
-              data-answered={isAnswered ? 'true' : undefined}
-              onClick={() => handleChoiceClick(choice)}
-              disabled={isAnswered}
-            >
-              {choice.term}
-            </ChoiceBtn>
-          );
-        })}
-      </ChoicesGrid>
-
-      {isAnswered && (
-        <>
-          <RevealCard>
-            <ResultFeedback $correct={isCorrect}>
-              {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
-            </ResultFeedback>
-            <RevealWord>{current.term}</RevealWord>
-            {current.apiMetadata?.partOfSpeech && (
-              <RevealPos>{current.apiMetadata.partOfSpeech}</RevealPos>
-            )}
-            <RevealDef>{current.translation}</RevealDef>
-          </RevealCard>
-
-          <NextBtn onClick={handleNext}>
-            {pos + 1 < studyWords.length ? 'Next →' : 'See Results'}
-          </NextBtn>
-        </>
-      )}
+      <Card $anim={anim}>
+        {face === 'question' ? (
+          <>
+            <QLabel>Which word matches this definition?</QLabel>
+            <DefText>{current?.translation ?? ''}</DefText>
+            <ChoicesGrid>
+              {choices.map(choice => (
+                <ChoiceBtn
+                  key={choice.id}
+                  onClick={() => handleChoice(choice)}
+                  disabled={selectedId !== null || anim !== 'idle'}
+                >
+                  {choice.term}
+                </ChoiceBtn>
+              ))}
+            </ChoicesGrid>
+          </>
+        ) : (
+          <>
+            <Feedback $correct={isCorrect}>
+              {isCorrect ? '✓ Correct!' : `✗ Incorrect — the answer was "${current?.term}"`}
+            </Feedback>
+            <div>
+              <RevealWord>{current?.term}</RevealWord>
+              {current?.apiMetadata?.partOfSpeech && (
+                <PosPill>{current.apiMetadata.partOfSpeech}</PosPill>
+              )}
+            </div>
+            <RevealDef>{current?.translation}</RevealDef>
+            <NextBtn onClick={handleNext}>
+              {pos + 1 < studyWords.length ? 'Next →' : 'See Results'}
+            </NextBtn>
+          </>
+        )}
+      </Card>
     </Wrapper>
   );
 }
