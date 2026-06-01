@@ -53,14 +53,6 @@ export async function fetchWords(bookId) {
   return res.json();
 }
 
-export async function fetchWordsPaged(bookId, page = 1, size = 20) {
-  const res = await fetch(`${BASE}/api/books/${bookId}/words?page=${page}&size=${size}`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('Failed to fetch words');
-  return res.json();
-}
-
 export async function saveWordsBatch(bookId, words) {
   const res = await fetch(`${BASE}/api/books/${bookId}/words/batch`, {
     method: 'POST',
@@ -99,19 +91,25 @@ export async function reviewWord(bookId, wordId, result) {
   return res.json();
 }
 
-export async function fetchDailyReviewWords(bookId) {
-  const res = await fetch(`${BASE}/api/books/${bookId}/words/review/daily`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('Failed to fetch daily review words');
+/* ── Dictionary search: returns { term, meanings: [{partOfSpeech, definition, example}] } ── */
+export async function searchWordMeanings(bookId, term) {
+  const res = await fetch(
+    `${BASE}/api/books/${bookId}/words/search?term=${encodeURIComponent(term)}`,
+    { headers: authHeaders() },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Search failed');
   return res.json();
 }
 
-export async function fetchDailyStats(bookId, days = 7) {
-  const res = await fetch(`${BASE}/api/books/${bookId}/words/stats/daily?days=${days}`, {
+/* ── Add word from dictionary with user-selected definitions ── */
+export async function addWordFromSearch(bookId, searchTerm, selectedDefinitions) {
+  const res = await fetch(`${BASE}/api/books/${bookId}/words/from-search`, {
+    method: 'POST',
     headers: authHeaders(),
+    body: JSON.stringify({ searchTerm, selectedDefinitions }),
   });
-  if (!res.ok) throw new Error('Failed to fetch stats');
+  if (!res.ok) throw new Error('Failed to add word');
   return res.json();
 }
 

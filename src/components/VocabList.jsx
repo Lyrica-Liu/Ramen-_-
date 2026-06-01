@@ -10,89 +10,78 @@ const Panel = styled.div`
   padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   height: 100%;
   overflow: hidden;
+  box-shadow: ${p => p.theme.shadow};
 `;
 
-const SearchRow = styled.div`
+const TopRow = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  flex-wrap: wrap;
 `;
 
 const SearchInput = styled.input`
   flex: 1;
-  min-width: 100px;
-  padding: 10px 14px;
+  padding: 9px 13px;
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radiusSm};
   outline: none;
-  font-size: 0.95rem;
-  background: #fff;
+  font-size: 0.92rem;
+  background: ${p => p.theme.bg};
+  color: ${p => p.theme.text};
+  transition: border-color 0.13s;
+
+  &::placeholder { color: ${p => p.theme.muted}; }
 
   &:focus {
     border-color: ${p => p.theme.primary};
+    box-shadow: 0 0 0 3px ${p => p.theme.primaryMuted};
   }
 `;
 
 const SelectBtn = styled.button`
-  padding: 8px 18px;
+  padding: 7px 14px;
   border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radiusSm};
-  background: ${p => (p.$active ? p.theme.primary : '#fff')};
-  color: ${p => (p.$active ? '#fff' : p.theme.text)};
-  font-size: 0.88rem;
+  background: ${p => (p.$active ? p.theme.primary : p.theme.bg)};
+  color: ${p => (p.$active ? '#fff' : p.theme.textSecondary)};
+  font-size: 0.85rem;
   font-weight: 600;
+  transition: all 0.13s;
 
   &:hover {
     background: ${p => (p.$active ? p.theme.primaryStrong : p.theme.btnHover)};
+    color: ${p => (p.$active ? '#fff' : p.theme.text)};
   }
 `;
 
-const FilterBar = styled.div`
+const CountRow = styled.div`
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-
-  &::-webkit-scrollbar {
-    height: 0;
-  }
+  align-items: center;
+  justify-content: space-between;
 `;
 
-const FilterBtn = styled.button`
-  padding: 6px 16px;
-  border: 1.5px solid ${p => (p.$active ? p.theme.primary : p.theme.border)};
-  border-radius: 999px;
-  background: ${p => (p.$active ? p.theme.selectedItem : '#fff')};
-  color: ${p => (p.$active ? p.theme.primaryStrong : p.theme.textSecondary)};
-  font-size: 0.88rem;
-  font-weight: 500;
-  white-space: nowrap;
-
-  &:hover {
-    background: ${p => (p.$active ? p.theme.selectedItem : p.theme.btnHover)};
-  }
-`;
-
-const SelectActions = styled.div`
-  display: flex;
-  gap: 10px;
+const WordCount = styled.div`
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: ${p => p.theme.muted};
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 `;
 
 const DeleteSelBtn = styled.button`
-  padding: 8px 16px;
+  padding: 5px 12px;
   border: 1.5px solid ${p => p.theme.hardBorder};
   border-radius: ${p => p.theme.radiusSm};
   background: ${p => p.theme.hardBg};
   color: ${p => p.theme.hardText};
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: default;
   }
 `;
@@ -104,88 +93,64 @@ const ListContainer = styled.ul`
   padding: 0;
   margin: 0;
 
-  &.quiz-masked li {
-    filter: blur(6px);
-    pointer-events: none;
-    user-select: none;
-  }
-
-  &.quiz-masked li.active-item {
-    filter: blur(2px);
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb {
+    background: ${p => p.theme.border};
+    border-radius: 99px;
   }
 `;
 
 const VocabItem = styled.li`
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 0;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: ${p => p.theme.radiusXs};
   cursor: pointer;
-
-  &:first-child {
-    border-radius: ${p => p.theme.radiusXs} ${p => p.theme.radiusXs} 0 0;
-  }
-  &:last-child {
-    border-radius: 0 0 ${p => p.theme.radiusXs} ${p => p.theme.radiusXs};
-  }
-  &:first-child:last-child {
-    border-radius: ${p => p.theme.radiusXs};
-  }
-  font-size: 0.95rem;
-  transition: background 0.12s, transform 0.1s;
+  font-size: 0.92rem;
+  transition: background 0.1s;
   background: ${p => {
     if (p.$selected) return p.theme.selectedItem;
     if (p.$active) return p.theme.activeItem;
-    if (p.$level === 'low') return p.theme.level.low;
-    if (p.$level === 'mid') return p.theme.level.mid;
-    if (p.$level === 'high') return p.theme.level.high;
     return 'transparent';
   }};
-  border: ${p => (p.$selected ? `1.5px solid ${p.theme.primary}` : '1.5px solid transparent')};
-
-  ${p =>
-    p.$active &&
-    `
-    box-shadow: 0 1px 4px rgba(148,168,255,0.10);
-    transform: translateX(1px);
-  `}
+  border: 1.5px solid ${p => (p.$selected ? p.theme.primary : 'transparent')};
 
   &:hover {
     background: ${p => (p.$active ? p.theme.activeItem : p.theme.btnHover)};
   }
-
-  span:first-child {
-    font-weight: 600;
-    color: ${p => p.theme.text};
-  }
-
-  span:last-child {
-    color: ${p => p.theme.textSecondary};
-  }
 `;
 
-/* ─── filters ─── */
-const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'new', label: 'New' },
-  { key: 'difficult', label: 'Difficult' },
-  { key: 'due', label: 'Due Today' },
-  { key: 'mastered', label: 'Mastered' },
-];
+const Term = styled.span`
+  font-weight: 700;
+  color: ${p => p.theme.text};
+  flex-shrink: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const Def = styled.span`
+  color: ${p => p.theme.muted};
+  font-size: 0.84rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+`;
 
 /* ─── component ─── */
 
 export default function VocabList({
   visibleWords,
-  activeIndex,
+  activeWordId,
   selectionMode,
   selectedWordIds,
   searchText,
-  activeFilter,
-  isQuizActive,
   onSearchChange,
-  onFilterChange,
   onWordClick,
   onWordContextMenu,
   onToggleSelect,
@@ -194,10 +159,9 @@ export default function VocabList({
 }) {
   const listRef = useRef(null);
 
-  /* auto-scroll active item into view */
   useEffect(() => {
-    if (selectionMode || activeIndex == null) return;
-    const el = listRef.current?.querySelector(`[data-idx="${activeIndex}"]`);
+    if (!activeWordId || selectionMode) return;
+    const el = listRef.current?.querySelector(`[data-wordid="${activeWordId}"]`);
     if (!el) return;
     const list = listRef.current;
     const lr = list.getBoundingClientRect();
@@ -205,71 +169,46 @@ export default function VocabList({
     if (er.top < lr.top || er.bottom > lr.bottom) {
       el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
-  }, [activeIndex, selectionMode, visibleWords]);
+  }, [activeWordId, selectionMode, visibleWords]);
 
   return (
     <Panel>
-      <SearchRow>
+      <TopRow>
         <SearchInput
           type="text"
-          placeholder="Search words…"
+          placeholder="Filter deck…"
           value={searchText}
           onChange={e => onSearchChange(e.target.value)}
         />
         <SelectBtn $active={selectionMode} onClick={onToggleSelect}>
           {selectionMode ? 'Done' : 'Select'}
         </SelectBtn>
-      </SearchRow>
+      </TopRow>
 
-      <FilterBar>
-        {FILTERS.map(f => (
-          <FilterBtn
-            key={f.key}
-            $active={activeFilter === f.key}
-            onClick={() => onFilterChange(f.key)}
-          >
-            {f.label}
-          </FilterBtn>
-        ))}
-      </FilterBar>
-
-      {selectionMode && (
-        <SelectActions>
+      <CountRow>
+        <WordCount>{visibleWords.length} word{visibleWords.length !== 1 ? 's' : ''}</WordCount>
+        {selectionMode && (
           <DeleteSelBtn disabled={deleteCount === 0} onClick={onDeleteSelected}>
-            Delete Selected ({deleteCount})
+            Delete ({deleteCount})
           </DeleteSelBtn>
-        </SelectActions>
-      )}
+        )}
+      </CountRow>
 
-      <ListContainer
-        ref={listRef}
-        className={isQuizActive ? 'quiz-masked' : ''}
-      >
+      <ListContainer ref={listRef}>
         {visibleWords.map((item, visIdx) => {
-          const isActive = !selectionMode && item.index === activeIndex;
+          const isActive = !selectionMode && item.id === activeWordId;
           const isSelected = selectionMode && selectedWordIds.has(item.id);
-          const level =
-            !selectionMode
-              ? (item.reviewLevel || 1) <= 2
-                ? 'low'
-                : (item.reviewLevel || 1) <= 4
-                  ? 'mid'
-                  : 'high'
-              : null;
-
           return (
             <VocabItem
               key={item.id ?? item.index}
-              data-idx={item.index}
+              data-wordid={item.id}
               $active={isActive}
               $selected={isSelected}
-              $level={level}
-              className={isActive ? 'active-item' : ''}
               onClick={e => onWordClick(item, visIdx, e)}
               onContextMenu={e => onWordContextMenu(e, item)}
             >
-              <span>{item.term}</span>
-              <span>{item.translation}</span>
+              <Term>{item.term}</Term>
+              <Def>{item.translation}</Def>
             </VocabItem>
           );
         })}

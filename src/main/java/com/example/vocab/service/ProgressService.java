@@ -76,7 +76,7 @@ public class ProgressService {
         BookDailyProgress todayProgress = progressRepository.findByBookIdAndActivityDate(bookId, today).orElse(null);
         int addedToday = todayProgress != null && todayProgress.getAddedCount() != null ? todayProgress.getAddedCount() : 0;
         int reviewedToday = todayProgress != null && todayProgress.getReviewedCount() != null ? todayProgress.getReviewedCount() : 0;
-        int streak = calculateCurrentStreak();
+        int streak = calculateCurrentStreak(bookId);
         return new ProgressHeader(addedToday, reviewedToday, streak);
     }
 
@@ -135,10 +135,10 @@ public class ProgressService {
         progressRepository.deleteByBookId(bookId);
     }
 
-    private int calculateCurrentStreak() {
+    private int calculateCurrentStreak(Long bookId) {
         LocalDate today = LocalDate.now();
         Map<LocalDate, Boolean> studiedByDate = new LinkedHashMap<>();
-        for (BookDailyProgress entry : progressRepository.findAllByOrderByActivityDateDesc()) {
+        for (BookDailyProgress entry : progressRepository.findByBookIdOrderByActivityDateDesc(bookId)) {
             if (!entry.hasStudyActivity()) {
                 continue;
             }

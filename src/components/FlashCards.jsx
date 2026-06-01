@@ -1,120 +1,77 @@
 import styled from 'styled-components';
 
-/* ─── helpers ─── */
-
-function levelLabel(level) {
-  if (level <= 2) return 'Beginner';
-  if (level <= 4) return 'Familiar';
-  return 'Mastered';
-}
-
-function formatDate(isoStr) {
-  if (!isoStr) return '—';
-  return new Date(isoStr).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function formatNextReview(isoStr) {
-  if (!isoStr) return '—';
-  const next = new Date(isoStr);
-  const now = new Date();
-  const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const nextMid = new Date(next.getFullYear(), next.getMonth(), next.getDate());
-  const diff = Math.round((nextMid - todayMid) / 86400000);
-  const dateStr = next.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-  if (diff <= 0) return `Today · ${dateStr}`;
-  if (diff === 1) return `Tomorrow · ${dateStr}`;
-  return `in ${diff} days · ${dateStr}`;
-}
-
 /* ─── styled ─── */
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  padding: 4px 2px;
 `;
 
-const Banner = styled.div`
-  background: ${p => p.theme.panel};
-  border: 1px solid ${p => p.theme.border};
-  border-left: 3px solid ${p => p.theme.primary};
-  border-radius: ${p => p.theme.radiusSm};
-  padding: 11px 18px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: ${p => p.theme.textSecondary};
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: ${p => p.theme.shadow};
-`;
-
-const ProgressTrack = styled.div`
-  flex: 1;
-  height: 6px;
-  background: ${p => p.theme.progressTrack};
-  border-radius: 99px;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div`
-  height: 100%;
-  background: linear-gradient(90deg, ${p => p.theme.progressGradient[0]}, ${p => p.theme.progressGradient[1]});
-  border-radius: 99px;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  width: ${p => p.$percent}%;
-`;
-
-const CardContainer = styled.div`
-  background: ${p => p.theme.panel};
-  border: 1px solid ${p => p.theme.border};
-  border-radius: ${p => p.theme.radius};
-  padding: 32px 32px 26px;
+const EmptyMsg = styled.div`
+  padding: 48px 24px;
   text-align: center;
-  box-shadow: ${p => p.theme.shadow};
+  color: ${p => p.theme.muted};
+  font-size: 0.95rem;
 `;
 
-const FlashCard = styled.div`
-  min-height: 190px;
+const Card = styled.div`
+  background: ${p => p.theme.panel};
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radius};
+  padding: 36px 32px;
+  min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  gap: 6px;
+  text-align: center;
+  box-shadow: ${p => p.theme.shadow};
+  transition: box-shadow 0.15s, transform 0.12s;
+
+  &:hover {
+    box-shadow: ${p => p.theme.shadowLg};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
-const Term = styled.div`
-  font-size: 2.2rem;
-  font-weight: 700;
+const FrontTerm = styled.div`
+  font-size: 2.4rem;
+  font-weight: 800;
   color: ${p => p.theme.text};
+  letter-spacing: -0.03em;
   line-height: 1.2;
-  letter-spacing: -0.02em;
-`;
-
-const Translation = styled.div`
-  font-size: 1.4rem;
-  font-weight: 500;
-  color: ${p => p.theme.textSecondary};
-  line-height: 1.4;
 `;
 
 const FlipHint = styled.div`
   font-size: 0.75rem;
   color: ${p => p.theme.muted};
-  margin-top: 4px;
+  margin-top: 12px;
   letter-spacing: 0.02em;
 `;
 
-const Message = styled.div`
-  font-size: 1.05rem;
-  color: ${p => p.theme.muted};
-  font-weight: 500;
+const BackLabel = styled.div`
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: ${p => p.theme.primary};
+  margin-bottom: 12px;
+`;
+
+const BackDef = styled.div`
+  font-size: 1.08rem;
+  color: ${p => p.theme.text};
+  line-height: 1.7;
+  max-width: 460px;
+  white-space: pre-line;
 `;
 
 const NavRow = styled.div`
@@ -125,219 +82,99 @@ const NavRow = styled.div`
 `;
 
 const NavBtn = styled.button`
-  padding: 11px 28px;
+  padding: 11px 26px;
   background: ${p => p.theme.panel};
-  border: 1px solid ${p => p.theme.border};
+  border: 1.5px solid ${p => p.theme.border};
   border-radius: ${p => p.theme.radiusSm};
   font-weight: 600;
-  font-size: 0.97rem;
+  font-size: 0.95rem;
   color: ${p => p.theme.text};
-  transition: all 0.16s ease;
+  transition: all 0.14s ease;
 
   &:hover:not(:disabled) {
     background: ${p => p.theme.btnHover};
     border-color: ${p => p.theme.borderStrong};
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
+    box-shadow: ${p => p.theme.shadowLg};
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: default;
   }
 `;
 
-const ReviewRow = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-`;
+const FlipBtn = styled(NavBtn)`
+  background: ${p => p.theme.primaryMuted};
+  border-color: transparent;
+  color: ${p => p.theme.primary};
+  font-weight: 700;
 
-const ReviewBtn = styled(NavBtn)`
-  flex: 1;
-  max-width: 160px;
-  padding: 14px 10px;
-  font-size: 0.97rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-`;
-
-const HardBtn = styled(ReviewBtn)`
-  background: ${p => p.theme.hardBg};
-  border-color: ${p => p.theme.hardBorder};
-  color: ${p => p.theme.hardText};
   &:hover:not(:disabled) {
-    background: ${p => p.theme.hardHover};
-    border-color: #f87171;
-    box-shadow: 0 3px 10px rgba(220,38,38,0.12);
+    background: ${p => p.theme.primary};
+    border-color: transparent;
+    color: #fff;
   }
-`;
-
-const OkayBtn = styled(ReviewBtn)`
-  background: ${p => p.theme.okayBg};
-  border-color: ${p => p.theme.okayBorder};
-  color: ${p => p.theme.okayText};
-  &:hover:not(:disabled) {
-    background: ${p => p.theme.okayHover};
-    border-color: #fcd34d;
-    box-shadow: 0 3px 10px rgba(217,119,6,0.12);
-  }
-`;
-
-const EasyBtn = styled(ReviewBtn)`
-  background: ${p => p.theme.easyBg};
-  border-color: ${p => p.theme.easyBorder};
-  color: ${p => p.theme.easyText};
-  &:hover:not(:disabled) {
-    background: ${p => p.theme.easyHover};
-    border-color: #4ade80;
-    box-shadow: 0 3px 10px rgba(22,163,74,0.12);
-  }
-`;
-
-const BtnLabel = styled.span`
-  font-size: 0.72rem;
-  font-weight: 500;
-  opacity: 0.65;
-  letter-spacing: 0.01em;
 `;
 
 const CardIndex = styled.div`
+  text-align: center;
   font-size: 0.82rem;
   color: ${p => p.theme.muted};
-  text-align: center;
   letter-spacing: 0.02em;
-`;
-
-const CompleteBox = styled.div`
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  border: 1px solid #bbf7d0;
-  border-radius: ${p => p.theme.radius};
-  padding: 24px 28px;
-  text-align: center;
-  font-size: 0.95rem;
-  line-height: 1.9;
-  color: ${p => p.theme.text};
-  box-shadow: ${p => p.theme.shadow};
-
-  strong {
-    font-weight: 700;
-    color: #15803d;
-  }
 `;
 
 const HintRow = styled.div`
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   color: ${p => p.theme.muted};
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 `;
 
 /* ─── component ─── */
 
-export default function FlashCards({
-  word,
-  showBack,
-  position,
-  total,
-  message,
-  canInteract,
-  dailyProgress,
-  showComplete,
-  summary,
-  onFlip,
-  onNext,
-  onPrev,
-  onEasy,
-  onOkay,
-  onHard,
-}) {
-  const disabled = !!message || !canInteract;
-  const level = word?.reviewLevel || 1;
+export default function FlashCards({ word, showBack, position, total, onFlip, onNext, onPrev }) {
+  const hasWords = total > 0 && word != null;
+
+  if (!hasWords) {
+    return (
+      <Wrapper>
+        <EmptyMsg>
+          {total === 0
+            ? 'No words in this deck yet. Add some words to get started!'
+            : 'No cards to display.'}
+        </EmptyMsg>
+      </Wrapper>
+    );
+  }
 
   return (
     <Wrapper>
-      {/* Daily session banner */}
-      {dailyProgress && (
-        <Banner>
-          <span>{dailyProgress.text}</span>
-          <ProgressTrack>
-            <ProgressFill $percent={Math.max(0, Math.min(100, dailyProgress.percent))} />
-          </ProgressTrack>
-        </Banner>
-      )}
+      <Card onClick={onFlip}>
+        {showBack ? (
+          <>
+            <BackLabel>Definition</BackLabel>
+            <BackDef>{word.translation || '—'}</BackDef>
+          </>
+        ) : (
+          <>
+            <FrontTerm>{word.term}</FrontTerm>
+            <FlipHint>click to reveal definition</FlipHint>
+          </>
+        )}
+      </Card>
 
-      {/* Completion summary */}
-      {showComplete && summary && (
-        <CompleteBox>
-          Words reviewed today: <strong>{summary.reviewed}</strong>
-          <br />
-          Words mastered: <strong>{summary.mastered}</strong>
-          {summary.accuracy !== null && (
-            <>
-              <br />
-              Accuracy rate: <strong>{summary.accuracy}%</strong>
-            </>
-          )}
-        </CompleteBox>
-      )}
-
-      {/* Flash card */}
-      <CardContainer>
-        <FlashCard onClick={disabled ? undefined : onFlip}>
-          {message ? (
-            <Message>{message}</Message>
-          ) : showBack ? (
-            <Translation>{word?.translation ?? '-'}</Translation>
-          ) : (
-            <>
-              <Term>{word?.term ?? '-'}</Term>
-              {!disabled && <FlipHint>click or Space to flip</FlipHint>}
-            </>
-          )}
-        </FlashCard>
-      </CardContainer>
-
-      {/* Navigation */}
       <NavRow>
-        <NavBtn disabled={disabled} onClick={onPrev}>←</NavBtn>
-        <NavBtn disabled={disabled} onClick={onFlip}>Flip</NavBtn>
-        <NavBtn disabled={disabled} onClick={onNext}>→</NavBtn>
+        <NavBtn onClick={onPrev} disabled={total <= 1}>←</NavBtn>
+        <FlipBtn onClick={onFlip}>Flip</FlipBtn>
+        <NavBtn onClick={onNext} disabled={total <= 1}>→</NavBtn>
       </NavRow>
 
-      {/* Review buttons */}
-      <ReviewRow>
-        <HardBtn disabled={disabled} onClick={onHard}>
-          Hard
-          <BtnLabel>A · level −1</BtnLabel>
-        </HardBtn>
-        <OkayBtn disabled={disabled} onClick={onOkay}>
-          Okay
-          <BtnLabel>S · level →</BtnLabel>
-        </OkayBtn>
-        <EasyBtn disabled={disabled} onClick={onEasy}>
-          Easy
-          <BtnLabel>D · level +1</BtnLabel>
-        </EasyBtn>
-      </ReviewRow>
-
-      {/* Card index */}
       <CardIndex>
-        {message ? (total === 0 ? 'No words yet' : '–') : `${position} / ${total}`}
+        {position} / {total}
       </CardIndex>
 
-      {/* Keyboard hints */}
-      {!disabled && (
-        <HintRow>
-          Space · flip &nbsp;·&nbsp; ← → · navigate &nbsp;·&nbsp; A / S / D · hard / okay / easy
-        </HintRow>
-      )}
+      <HintRow>Space · flip &nbsp;·&nbsp; ← → · navigate</HintRow>
     </Wrapper>
   );
 }

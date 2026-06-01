@@ -42,6 +42,7 @@ public class Word {
     private VocabularyBook book;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "word")
+    @JsonIgnore
     private MCQuestion mcQuestion;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "word")

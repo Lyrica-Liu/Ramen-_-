@@ -54,43 +54,7 @@ public class VocabularyService {
     }
 
     public List<Word> listWords(Long bookId) {
-        List<Word> words = wordRepository.findByBookIdOrderByPositionAsc(bookId);
-        LocalDateTime now = LocalDateTime.now();
-        boolean changed = false;
-
-        for (Word word : words) {
-            if (word.getReviewLevel() == null || word.getReviewLevel() < 1) {
-                word.setReviewLevel(1);
-                changed = true;
-            }
-            if (word.getNextReviewTime() == null) {
-                word.setNextReviewTime(now);
-                changed = true;
-            }
-            if (word.getCreatedTime() == null) {
-                word.setCreatedTime(now);
-                changed = true;
-            }
-            if (word.getLevelProgressDate() == null) {
-                word.setLevelProgressDate(now.toLocalDate());
-                changed = true;
-            }
-            if (word.getLevelProgressCount() == null) {
-                word.setLevelProgressCount(0);
-                changed = true;
-            }
-            if (word.getDifficultyScore() == null) {
-                word.setDifficultyScore(0);
-                changed = true;
-            }
-        }
-
-        if (changed) {
-            Iterable<Word> wordsToSave = new ArrayList<>(words);
-            wordRepository.saveAll(wordsToSave);
-        }
-
-        return words;
+        return wordRepository.findByBookIdOrderByPositionAsc(bookId);
     }
 
     public List<Word> addWords(Long bookId, List<Word> words) {
@@ -99,8 +63,7 @@ public class VocabularyService {
             return new ArrayList<>();
         }
 
-        List<Word> added = new ArrayList<>();
-        int position = book.getWords().size();
+        int position = (int) wordRepository.countByBookId(bookId);
         LocalDateTime now = LocalDateTime.now();
         for (Word word : words) {
             word.setBook(book);
@@ -112,50 +75,57 @@ public class VocabularyService {
             word.setLevelProgressDate(now.toLocalDate());
             word.setLevelProgressCount(0);
             word.setDifficultyScore(0);
-            added.add(wordRepository.save(word));
         }
+        List<Word> added = wordRepository.saveAll(words);
         progressService.recordAddedWords(bookId, added.size());
         return added;
     }
 
     public Word addSearchedWord(Long bookId, String searchTerm) {
+        return addSearchedWord(bookId, searchTerm, null);
+    }
+
+    public Word addSearchedWord(Long bookId, String searchTerm, List<String> selectedDefinitions) {
         VocabularyBook book = bookService.getBook(bookId);
-        if (book == null) {
-            return null;
-        }
+        if (book == null) return null;
 
         WordSearchService.WordSearchResult searchResult = wordSearchService.searchWord(searchTerm);
-        if (searchResult == null) {
-            return null;
+
+        String canonicalTerm;
+        String translation;
+        String example = "";
+
+        if (selectedDefinitions != null && !selectedDefinitions.isEmpty()) {
+            canonicalTerm = (searchResult != null) ? searchResult.getTerm() : searchTerm;
+            example = (searchResult != null) ? searchResult.getExample() : "";
+            translation = String.join("\n", selectedDefinitions);
+        } else {
+            if (searchResult == null) return null;
+            canonicalTerm = searchResult.getTerm();
+            translation = searchResult.getDefinition();
+            example = searchResult.getExample();
         }
 
-        List<String> distractors = distractorService.generateDistractors(
-                searchResult.getDefinition(), searchResult.getDefinition(), 3);
-
-        MCQuestion mcQuestion = mcQuestionService.createMCQuestion(
-                searchResult.getDefinition(), distractors, "");
-
         WordApiMetadata apiMetadata = new WordApiMetadata();
-        apiMetadata.setApiSource(searchResult.getApiSource());
-        apiMetadata.setApiDefinition(searchResult.getDefinition());
-        apiMetadata.setExampleSentence(searchResult.getExample());
+        apiMetadata.setApiSource("freedictionary.dev");
+        apiMetadata.setApiDefinition(translation);
+        apiMetadata.setExampleSentence(example != null ? example : "");
 
         Word word = new Word();
-        word.setTerm(searchResult.getTerm());
-        word.setTranslation(searchResult.getDefinition());
+        word.setTerm(canonicalTerm);
+        word.setTranslation(translation);
         word.setBook(book);
-        word.setPosition(book.getWords().size());
-        word.setMcQuestion(mcQuestion);
+        word.setPosition((int) wordRepository.countByBookId(bookId));
         word.setApiMetadata(apiMetadata);
 
         word.setReviewLevel(1);
         LocalDateTime now = LocalDateTime.now();
         word.setCreatedTime(now);
+        word.setNextReviewTime(now);
         word.setLevelProgressDate(now.toLocalDate());
         word.setLevelProgressCount(0);
         word.setDifficultyScore(0);
 
-        mcQuestion.setWord(word);
         apiMetadata.setWord(word);
 
         Word savedWord = wordRepository.save(word);

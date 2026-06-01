@@ -56,9 +56,12 @@ public class VocabularyController {
 
     public static class SearchRequest {
         private String searchTerm;
+        private List<String> selectedDefinitions;
 
         public String getSearchTerm() { return searchTerm; }
         public void setSearchTerm(String searchTerm) { this.searchTerm = searchTerm; }
+        public List<String> getSelectedDefinitions() { return selectedDefinitions; }
+        public void setSelectedDefinitions(List<String> selectedDefinitions) { this.selectedDefinitions = selectedDefinitions; }
     }
 
     public static class ProgressActivityRequest {
@@ -200,26 +203,17 @@ public class VocabularyController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<WordSearchResponse> searchWord(@RequestParam String term) {
+    public ResponseEntity<WordSearchService.AllMeaningsResult> searchWord(@RequestParam String term) {
         if (term == null || term.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        WordSearchService.WordSearchResult result = wordSearchService.searchWord(term);
+        WordSearchService.AllMeaningsResult result = wordSearchService.searchAllMeanings(term);
         if (result == null) {
             return ResponseEntity.notFound().build();
         }
 
-        List<String> distractors = distractorService.generateDistractors(
-                result.getDefinition(), result.getDefinition(), 3);
-
-        return ResponseEntity.ok(new WordSearchResponse(
-                result.getTerm(),
-                result.getDefinition(),
-                result.getExample(),
-                distractors,
-                result.getApiSource()
-        ));
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/from-search")
@@ -231,7 +225,7 @@ public class VocabularyController {
             return ResponseEntity.badRequest().build();
         }
 
-        Word word = vocabularyService.addSearchedWord(bookId, request.getSearchTerm());
+        Word word = vocabularyService.addSearchedWord(bookId, request.getSearchTerm(), request.getSelectedDefinitions());
         if (word == null) {
             return ResponseEntity.badRequest().build();
         }

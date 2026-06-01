@@ -18,7 +18,7 @@ public class VocabularyBook {
     @JsonIgnore
     private User user;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("position asc")
     private List<Word> words = new ArrayList<>();
 
