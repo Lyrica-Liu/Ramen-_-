@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -299,6 +299,8 @@ function isDue(word) {
 
 export default function BookView() {
   const { bookId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   /* ─── state ─── */
   const [book, setBook] = useState(null);
@@ -898,7 +900,7 @@ export default function BookView() {
         console.error(e);
       }
     })();
-  }, [bookId]);
+  }, [bookId, location.pathname]);
 
   useEffect(() => {
     const len = words.length;
