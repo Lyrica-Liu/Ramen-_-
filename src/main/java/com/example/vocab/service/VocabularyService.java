@@ -82,24 +82,34 @@ public class VocabularyService {
     }
 
     public Word addSearchedWord(Long bookId, String searchTerm) {
-        return addSearchedWord(bookId, searchTerm, null);
+        return addSearchedWord(bookId, searchTerm, null, null);
     }
 
     public Word addSearchedWord(Long bookId, String searchTerm, List<String> selectedDefinitions) {
+        return addSearchedWord(bookId, searchTerm, selectedDefinitions, null);
+    }
+
+    public Word addSearchedWord(Long bookId, String searchTerm, List<String> selectedDefinitions, String exampleHint) {
         VocabularyBook book = bookService.getBook(bookId);
         if (book == null) return null;
-
-        WordSearchService.WordSearchResult searchResult = wordSearchService.searchWord(searchTerm);
 
         String canonicalTerm;
         String translation;
         String example = "";
 
         if (selectedDefinitions != null && !selectedDefinitions.isEmpty()) {
-            canonicalTerm = (searchResult != null) ? searchResult.getTerm() : searchTerm;
-            example = (searchResult != null) ? searchResult.getExample() : "";
+            if (exampleHint != null) {
+                // Example already supplied by the frontend from the earlier search — skip external API call
+                canonicalTerm = searchTerm;
+                example = exampleHint;
+            } else {
+                WordSearchService.WordSearchResult searchResult = wordSearchService.searchWord(searchTerm);
+                canonicalTerm = (searchResult != null) ? searchResult.getTerm() : searchTerm;
+                example = (searchResult != null) ? searchResult.getExample() : "";
+            }
             translation = String.join("\n", selectedDefinitions);
         } else {
+            WordSearchService.WordSearchResult searchResult = wordSearchService.searchWord(searchTerm);
             if (searchResult == null) return null;
             canonicalTerm = searchResult.getTerm();
             translation = searchResult.getDefinition();

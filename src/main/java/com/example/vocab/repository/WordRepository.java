@@ -17,6 +17,9 @@ public interface WordRepository extends JpaRepository<Word, Long> {
     void deleteByBookId(Long bookId);
     long countByBookId(Long bookId);
 
+    @Query("SELECT w.book.id, COUNT(w) FROM Word w WHERE w.book.id IN :bookIds GROUP BY w.book.id")
+    List<Object[]> countGroupedByBookIds(@Param("bookIds") List<Long> bookIds);
+
     @Query("SELECT w FROM Word w WHERE w.book.id = :bookId AND w.nextReviewTime <= :now ORDER BY COALESCE(w.difficultyScore, 0) DESC, w.nextReviewTime ASC")
     List<Word> findDueWordsPrioritizedByDifficulty(@Param("bookId") Long bookId, @Param("now") LocalDateTime now);
 }

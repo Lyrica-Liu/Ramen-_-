@@ -311,12 +311,12 @@ export default function AddWordPanel({ bookId, onWordAdded }) {
     setSaving(true);
     setError('');
 
-    const defs = [...selected]
-      .sort((a, b) => a - b)
-      .map(i => result.meanings[i].definition);
+    const sorted = [...selected].sort((a, b) => a - b);
+    const defs = sorted.map(i => result.meanings[i].definition);
+    const example = sorted.map(i => result.meanings[i].example).find(e => e) ?? '';
 
     try {
-      const word = await api.addWordFromSearch(bookId, result.term, defs);
+      const word = await api.addWordFromSearch(bookId, result.term, defs, example);
       setAddedWord(word);
       setResult(null);
       setTerm('');

@@ -57,11 +57,14 @@ public class VocabularyController {
     public static class SearchRequest {
         private String searchTerm;
         private List<String> selectedDefinitions;
+        private String example;
 
         public String getSearchTerm() { return searchTerm; }
         public void setSearchTerm(String searchTerm) { this.searchTerm = searchTerm; }
         public List<String> getSelectedDefinitions() { return selectedDefinitions; }
         public void setSelectedDefinitions(List<String> selectedDefinitions) { this.selectedDefinitions = selectedDefinitions; }
+        public String getExample() { return example; }
+        public void setExample(String example) { this.example = example; }
     }
 
     public static class ProgressActivityRequest {
@@ -165,7 +168,7 @@ public class VocabularyController {
     @GetMapping("/stats/daily")
     public ResponseEntity<List<VocabularyService.DailyStats>> getDailyStats(
             @PathVariable("bookId") Long bookId,
-            @RequestParam(name = "days", defaultValue = "7") int days
+            @RequestParam(value = "days", defaultValue = "7") int days
     ) {
         return ResponseEntity.ok(vocabularyService.getDailyStats(bookId, days));
     }
@@ -203,7 +206,7 @@ public class VocabularyController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<WordSearchService.AllMeaningsResult> searchWord(@RequestParam String term) {
+    public ResponseEntity<WordSearchService.AllMeaningsResult> searchWord(@RequestParam("term") String term) {
         if (term == null || term.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -225,7 +228,7 @@ public class VocabularyController {
             return ResponseEntity.badRequest().build();
         }
 
-        Word word = vocabularyService.addSearchedWord(bookId, request.getSearchTerm(), request.getSelectedDefinitions());
+        Word word = vocabularyService.addSearchedWord(bookId, request.getSearchTerm(), request.getSelectedDefinitions(), request.getExample());
         if (word == null) {
             return ResponseEntity.badRequest().build();
         }

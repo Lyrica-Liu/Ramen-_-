@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import * as api from '../api';
@@ -9,24 +8,115 @@ import AddWordPanel from '../components/AddWordPanel';
 import FlashCards from '../components/FlashCards';
 import StudyMode from '../components/StudyMode';
 
-/* ─── layout ─── */
+/* ─── shell layout ─── */
 
-const Page = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
+const Shell = styled.div`
+  display: flex;
   height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 210% 58% at -18% -2%,  rgba(196,132,138,0.26) 0%, transparent 60%),
+    radial-gradient(ellipse 170% 46% at -10% 18%,  rgba(208,145,142,0.17) 0%, transparent 56%),
+    radial-gradient(ellipse 135% 36% at  -3% 35%,  rgba(218,163,155,0.11) 0%, transparent 52%),
+    linear-gradient(162deg, #FAF0E8 0%, #F5E8D4 58%, #F2E0C8 100%);
+`;
+
+const SidePanel = styled.div`
+  width: ${p => p.$open ? '240px' : '0px'};
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.26s ease,
+              box-shadow 0.26s ease;
+  border-right: 1.5px solid ${p => p.$open ? p.theme.border : 'transparent'};
+  background: ${p => p.theme.panel};
+  box-shadow: ${p => p.$open ? '4px 0 20px rgba(160,80,80,0.05)' : 'none'};
+`;
+
+const SidePanelInner = styled.div`
+  width: 240px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+`;
+
+const SidePanelHeader = styled.div`
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: ${p => p.theme.muted};
+  padding: 0 16px 14px;
+`;
+
+const MainArea = styled.div`
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 0 32px;
 `;
+
+/* ─── title bar ─── */
 
 const TitleBar = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 20px 0 14px;
   flex-shrink: 0;
+`;
+
+const WordListTab = styled.button`
+  position: fixed;
+  left: ${p => p.$open ? '240px' : '0px'};
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  transition: left 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.14s,
+              background 0.14s,
+              box-shadow 0.14s;
+
+  background: rgba(253, 248, 244, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(196, 132, 138, 0.20);
+  border-left: none;
+  border-radius: 0 16px 16px 0;
+  padding: 22px 9px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 4px 0 20px rgba(160, 80, 80, 0.09);
+
+  &:hover {
+    background: rgba(253, 248, 244, 0.98);
+    border-color: rgba(196, 132, 138, 0.38);
+    box-shadow: 4px 0 26px rgba(160, 80, 80, 0.14);
+  }
+`;
+
+const TabLabel = styled.span`
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: ${p => p.theme.textSecondary};
+  user-select: none;
+`;
+
+const TabPip = styled.div`
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(196, 132, 138, 0.45);
 `;
 
 const BackLink = styled(Link)`
@@ -58,7 +148,7 @@ const BookTitle = styled.h1`
   white-space: nowrap;
 `;
 
-/* ─── centered nav bar ─── */
+/* ─── nav bar ─── */
 
 const NavBar = styled.div`
   display: flex;
@@ -80,17 +170,17 @@ const AddWordBtn = styled.button`
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  background: ${p => p.$active ? 'rgba(139, 92, 246, 0.18)' : 'rgba(139, 92, 246, 0.07)'};
-  border: 1.5px solid ${p => p.$active ? 'rgba(139, 92, 246, 0.45)' : 'rgba(139, 92, 246, 0.22)'};
+  background: ${p => p.$active ? 'rgba(196, 132, 138, 0.16)' : 'rgba(196, 132, 138, 0.05)'};
+  border: 1.5px solid ${p => p.$active ? 'rgba(196, 132, 138, 0.40)' : 'rgba(196, 132, 138, 0.18)'};
   color: ${p => p.theme.primary};
   box-shadow: ${p => p.$active
-    ? '0 4px 20px rgba(139, 92, 246, 0.20), inset 0 1px 0 rgba(255,255,255,0.7)'
+    ? '0 4px 20px rgba(160, 80, 80, 0.18), inset 0 1px 0 rgba(255,255,255,0.7)'
     : 'inset 0 1px 0 rgba(255,255,255,0.5)'};
 
   &:hover {
-    background: rgba(139, 92, 246, 0.14);
-    border-color: rgba(139, 92, 246, 0.38);
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.18), inset 0 1px 0 rgba(255,255,255,0.7);
+    background: rgba(196, 132, 138, 0.11);
+    border-color: rgba(196, 132, 138, 0.34);
+    box-shadow: 0 4px 20px rgba(160, 80, 80, 0.14), inset 0 1px 0 rgba(255,255,255,0.7);
     transform: translateY(-1px);
   }
   &:active { transform: translateY(0); }
@@ -126,7 +216,7 @@ const ToggleOption = styled.button`
   &:hover {
     color: ${p => (p.$active ? '#fff' : p.theme.text)};
     background: ${p => p.$active
-      ? `linear-gradient(135deg, ${p.theme.primaryStrong} 0%, #6D28D9 100%)`
+      ? `linear-gradient(135deg, ${p.theme.primaryStrong} 0%, #8C5060 100%)`
       : p.theme.btnHover};
   }
 `;
@@ -143,77 +233,12 @@ const Content = styled.div`
   &::-webkit-scrollbar-thumb { background: ${p => p.theme.border}; border-radius: 99px; }
 `;
 
-/* ─── drawer ─── */
-
-const DrawerBackdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(30, 27, 75, 0.15);
-  z-index: 40;
-  opacity: ${p => (p.$open ? 1 : 0)};
-  pointer-events: ${p => (p.$open ? 'all' : 'none')};
-  transition: opacity 0.22s ease;
-`;
-
-const DrawerPanel = styled.div`
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: 230px;
-  background: ${p => p.theme.panel};
-  border-right: 1.5px solid ${p => p.theme.border};
-  border-radius: 0 24px 24px 0;
-  box-shadow: 6px 0 32px rgba(139, 92, 246, 0.12);
-  z-index: 41;
-  transform: translateX(${p => (p.$open ? '0' : '-100%')});
-  transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  padding-top: 20px;
-`;
-
-const DrawerHeader = styled.div`
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: ${p => p.theme.muted};
-  padding: 0 16px 14px;
-`;
-
-const DrawerTab = styled.button`
-  position: fixed;
-  left: ${p => (p.$open ? '230px' : '0')};
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 42;
-  background: ${p => p.theme.panel};
-  border: 1.5px solid ${p => p.theme.border};
-  border-left: none;
-  border-radius: 0 12px 12px 0;
-  width: 22px;
-  padding: 20px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: ${p => p.theme.muted};
-  cursor: pointer;
-  transition: left 0.24s cubic-bezier(0.4, 0, 0.2, 1), color 0.13s, background 0.13s;
-  box-shadow: 2px 0 10px rgba(139, 92, 246, 0.08);
-
-  &:hover { background: ${p => p.theme.btnHover}; color: ${p => p.theme.primary}; }
-`;
-
 /* ─── component ─── */
 
 export default function BookView() {
   const { bookId } = useParams();
   const location = useLocation();
 
-  /* use nav state for title — avoids a separate getBook API call */
   const [book, setBook] = useState({ title: location.state?.title ?? null });
   const [words, setWords] = useState([]);
   const [activeTab, setActiveTab] = useState('add');
@@ -221,18 +246,22 @@ export default function BookView() {
   const [listSearch, setListSearch] = useState('');
   const [ctxMenu, setCtxMenu] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
   const [flashIndex, setFlashIndex] = useState(0);
   const [flashShowBack, setFlashShowBack] = useState(false);
 
-  /* ─── load data ─── */
   useEffect(() => {
     if (!bookId) return;
     if (!location.state?.title) {
-      /* only fetch book meta if we didn't get the title from nav state */
       api.getBook(bookId).then(b => setBook(b)).catch(console.error);
     }
-    api.fetchWords(bookId).then(setWords).catch(console.error);
+    try {
+      const cached = localStorage.getItem(`rv_words_${bookId}`);
+      if (cached) setWords(JSON.parse(cached));
+    } catch {}
+    api.fetchWords(bookId).then(w => {
+      setWords(w);
+      try { localStorage.setItem(`rv_words_${bookId}`, JSON.stringify(w)); } catch {}
+    }).catch(console.error);
   }, [bookId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -240,10 +269,13 @@ export default function BookView() {
   }, [words.length]);
 
   const refreshWords = useCallback(async () => {
-    try { setWords(await api.fetchWords(bookId)); } catch (e) { console.error(e); }
+    try {
+      const w = await api.fetchWords(bookId);
+      setWords(w);
+      try { localStorage.setItem(`rv_words_${bookId}`, JSON.stringify(w)); } catch {}
+    } catch (e) { console.error(e); }
   }, [bookId]);
 
-  /* ─── filtered list ─── */
   const visibleWords = useMemo(() => {
     const q = listSearch.trim().toLowerCase();
     return words
@@ -251,14 +283,12 @@ export default function BookView() {
       .filter(item => !q || item.term.toLowerCase().includes(q));
   }, [words, listSearch]);
 
-  /* ─── navigation ─── */
   function switchToStudy(tab) {
     setStudyTab(tab);
     setActiveTab('study');
     setFlashShowBack(false);
   }
 
-  /* ─── flashcard ─── */
   function flashNext() {
     if (!words.length) return;
     setFlashIndex(prev => (prev + 1) % words.length);
@@ -270,13 +300,12 @@ export default function BookView() {
     setFlashShowBack(false);
   }
 
-  /* ─── keyboard ─── */
   const flashHandlers = useRef({});
   flashHandlers.current = { flip: () => setFlashShowBack(p => !p), next: flashNext, prev: flashPrev };
 
   useEffect(() => {
     const onKey = e => {
-      if (e.key === 'Escape') { setCtxMenu(null); setDrawerOpen(false); return; }
+      if (e.key === 'Escape') { setCtxMenu(null); return; }
       const tag = e.target.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
       if (activeTab !== 'study' || studyTab !== 'flash') return;
@@ -292,16 +321,17 @@ export default function BookView() {
     const close = () => setCtxMenu(null);
     document.addEventListener('click', close);
     document.addEventListener('scroll', close, true);
-    return () => { document.removeEventListener('click', close); document.removeEventListener('scroll', close, true); };
+    return () => {
+      document.removeEventListener('click', close);
+      document.removeEventListener('scroll', close, true);
+    };
   }, []);
 
-  /* ─── word interactions ─── */
   function handleWordClick(item) {
     if (activeTab === 'study' && studyTab === 'flash' && item.index != null) {
       setFlashIndex(item.index);
       setFlashShowBack(false);
     }
-    setDrawerOpen(false);
   }
 
   function handleWordCtx(event, word) {
@@ -329,7 +359,7 @@ export default function BookView() {
     if (!ctxMenu) return;
     const { word } = ctxMenu;
     setCtxMenu(null);
-    if (!confirm(`Delete "${word.term}"?`)) return;
+    if (!confirm(`Delete "${word.title}"?`)) return;
     try { await api.deleteWord(bookId, word.id); await refreshWords(); }
     catch { alert('Failed to delete word.'); }
   }
@@ -339,64 +369,74 @@ export default function BookView() {
     : null;
 
   return (
-    <Page>
-      <TitleBar>
-        <BackLink to="/bookshelf">← Bookshelf</BackLink>
-        <BookTitle>{book?.title ?? '…'}</BookTitle>
-      </TitleBar>
+    <Shell>
+      <WordListTab
+        $open={drawerOpen}
+        onClick={() => setDrawerOpen(o => !o)}
+        title={drawerOpen ? 'Close word list' : 'Show word list'}
+      >
+        <TabLabel>{drawerOpen ? 'Close' : 'Word List'}</TabLabel>
+        <TabPip />
+      </WordListTab>
 
-      <NavBar>
-        <AddWordBtn $active={activeTab === 'add'} onClick={() => setActiveTab('add')}>
-          + Add Word
-        </AddWordBtn>
-        <ToggleTrack>
-          <ToggleOption $active={activeTab === 'study' && studyTab === 'flash'} onClick={() => switchToStudy('flash')}>
-            Flashcards
-          </ToggleOption>
-          <ToggleOption $active={activeTab === 'study' && studyTab === 'study'} onClick={() => switchToStudy('study')}>
-            Study Mode
-          </ToggleOption>
-        </ToggleTrack>
-      </NavBar>
-
-      <Content>
-        {activeTab === 'add' && (
-          <AddWordPanel bookId={bookId} onWordAdded={word => setWords(prev => [...prev, word])} />
-        )}
-        {activeTab === 'study' && studyTab === 'flash' && (
-          <FlashCards
-            word={words.length > 0 ? words[flashIndex] : null}
-            showBack={flashShowBack}
-            position={words.length > 0 ? flashIndex + 1 : 0}
-            total={words.length}
-            onFlip={() => setFlashShowBack(p => !p)}
-            onNext={flashNext}
-            onPrev={flashPrev}
+      <SidePanel $open={drawerOpen}>
+        <SidePanelInner>
+          <SidePanelHeader>Words ({words.length})</SidePanelHeader>
+          <VocabList
+            visibleWords={visibleWords}
+            activeWordId={activeWordId}
+            searchText={listSearch}
+            onSearchChange={setListSearch}
+            onWordClick={handleWordClick}
+            onWordContextMenu={handleWordCtx}
           />
-        )}
-        {activeTab === 'study' && studyTab === 'study' && <StudyMode words={words} />}
-      </Content>
+        </SidePanelInner>
+      </SidePanel>
 
-      {createPortal(
-        <>
-          <DrawerTab $open={drawerOpen} onClick={() => setDrawerOpen(o => !o)} title={drawerOpen ? 'Close list' : 'Open word list'}>
-            {drawerOpen ? '‹' : '›'}
-          </DrawerTab>
-          <DrawerBackdrop $open={drawerOpen} onClick={() => setDrawerOpen(false)} />
-          <DrawerPanel $open={drawerOpen}>
-            <DrawerHeader>Words ({words.length})</DrawerHeader>
-            <VocabList
-              visibleWords={visibleWords}
-              activeWordId={activeWordId}
-              searchText={listSearch}
-              onSearchChange={setListSearch}
-              onWordClick={handleWordClick}
-              onWordContextMenu={handleWordCtx}
+      <MainArea>
+        <TitleBar>
+          <BackLink to="/bookshelf">← Bookshelf</BackLink>
+          <BookTitle>{book?.title ?? '…'}</BookTitle>
+        </TitleBar>
+
+        <NavBar>
+          <AddWordBtn $active={activeTab === 'add'} onClick={() => setActiveTab('add')}>
+            + Add Word
+          </AddWordBtn>
+          <ToggleTrack>
+            <ToggleOption
+              $active={activeTab === 'study' && studyTab === 'flash'}
+              onClick={() => switchToStudy('flash')}
+            >
+              Flashcards
+            </ToggleOption>
+            <ToggleOption
+              $active={activeTab === 'study' && studyTab === 'study'}
+              onClick={() => switchToStudy('study')}
+            >
+              Study Mode
+            </ToggleOption>
+          </ToggleTrack>
+        </NavBar>
+
+        <Content>
+          {activeTab === 'add' && (
+            <AddWordPanel bookId={bookId} onWordAdded={word => setWords(prev => [...prev, word])} />
+          )}
+          {activeTab === 'study' && studyTab === 'flash' && (
+            <FlashCards
+              word={words.length > 0 ? words[flashIndex] : null}
+              showBack={flashShowBack}
+              position={words.length > 0 ? flashIndex + 1 : 0}
+              total={words.length}
+              onFlip={() => setFlashShowBack(p => !p)}
+              onNext={flashNext}
+              onPrev={flashPrev}
             />
-          </DrawerPanel>
-        </>,
-        document.body
-      )}
+          )}
+          {activeTab === 'study' && studyTab === 'study' && <StudyMode words={words} />}
+        </Content>
+      </MainArea>
 
       {ctxMenu && (
         <ContextMenu
@@ -409,6 +449,6 @@ export default function BookView() {
           onClose={() => setCtxMenu(null)}
         />
       )}
-    </Page>
+    </Shell>
   );
 }

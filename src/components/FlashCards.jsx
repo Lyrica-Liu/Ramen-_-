@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 /* ─── styled ─── */
@@ -16,6 +17,10 @@ const EmptyMsg = styled.div`
   font-size: 0.95rem;
 `;
 
+const CardScene = styled.div`
+  perspective: 900px;
+`;
+
 const Card = styled.div`
   background: ${p => p.theme.panel};
   border: 1.5px solid ${p => p.theme.border};
@@ -30,15 +35,16 @@ const Card = styled.div`
   user-select: none;
   text-align: center;
   box-shadow: ${p => p.theme.shadow};
-  transition: box-shadow 0.15s, transform 0.12s;
+  opacity: ${p => p.$visible ? 1 : 0};
+  transform: ${p => p.$visible
+    ? 'scale(1) rotateY(0deg)'
+    : 'scale(0.97) rotateY(5deg)'};
+  transition: opacity 0.17s ease,
+              transform 0.17s ease,
+              box-shadow 0.15s;
 
   &:hover {
     box-shadow: ${p => p.theme.shadowLg};
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
   }
 `;
 
@@ -134,6 +140,25 @@ const HintRow = styled.div`
 /* ─── component ─── */
 
 export default function FlashCards({ word, showBack, position, total, onFlip, onNext, onPrev }) {
+  const [visible, setVisible] = useState(true);
+  const [displayBack, setDisplayBack] = useState(showBack);
+  const timerRef = useRef();
+  const mountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    clearTimeout(timerRef.current);
+    setVisible(false);
+    timerRef.current = setTimeout(() => {
+      setDisplayBack(showBack);
+      setVisible(true);
+    }, 170);
+    return () => clearTimeout(timerRef.current);
+  }, [showBack, word?.id]);
+
   const hasWords = total > 0 && word != null;
 
   if (!hasWords) {
@@ -150,19 +175,21 @@ export default function FlashCards({ word, showBack, position, total, onFlip, on
 
   return (
     <Wrapper>
-      <Card onClick={onFlip}>
-        {showBack ? (
-          <>
-            <BackLabel>Definition</BackLabel>
-            <BackDef>{word.translation || '—'}</BackDef>
-          </>
-        ) : (
-          <>
-            <FrontTerm>{word.term}</FrontTerm>
-            <FlipHint>click to reveal definition</FlipHint>
-          </>
-        )}
-      </Card>
+      <CardScene>
+        <Card $visible={visible} onClick={onFlip}>
+          {displayBack ? (
+            <>
+              <BackLabel>Definition</BackLabel>
+              <BackDef>{word.translation || '—'}</BackDef>
+            </>
+          ) : (
+            <>
+              <FrontTerm>{word.term}</FrontTerm>
+              <FlipHint>click to reveal definition</FlipHint>
+            </>
+          )}
+        </Card>
+      </CardScene>
 
       <NavRow>
         <NavBtn onClick={onPrev} disabled={total <= 1}>←</NavBtn>

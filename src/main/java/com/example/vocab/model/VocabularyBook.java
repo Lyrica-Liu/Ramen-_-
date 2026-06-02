@@ -20,7 +20,11 @@ public class VocabularyBook {
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("position asc")
+    @JsonIgnore
     private List<Word> words = new ArrayList<>();
+
+    @Transient
+    private int wordCount;
 
     public VocabularyBook() {}
 
@@ -39,6 +43,9 @@ public class VocabularyBook {
 
     public List<Word> getWords() { return words; }
     public void setWords(List<Word> words) { this.words = words; }
+
+    public int getWordCount() { return wordCount; }
+    public void setWordCount(int wordCount) { this.wordCount = wordCount; }
 
     public void addWord(Word word) {
         word.setBook(this);

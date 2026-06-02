@@ -103,11 +103,11 @@ export async function searchWordMeanings(bookId, term) {
 }
 
 /* ── Add word from dictionary with user-selected definitions ── */
-export async function addWordFromSearch(bookId, searchTerm, selectedDefinitions) {
+export async function addWordFromSearch(bookId, searchTerm, selectedDefinitions, example) {
   const res = await fetch(`${BASE}/api/books/${bookId}/words/from-search`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ searchTerm, selectedDefinitions }),
+    body: JSON.stringify({ searchTerm, selectedDefinitions, example: example ?? '' }),
   });
   if (!res.ok) throw new Error('Failed to add word');
   return res.json();
