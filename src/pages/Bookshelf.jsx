@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bowlImg from '../assets/ramen-bowl.png';
 import styled, { keyframes } from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -12,27 +13,12 @@ const VOCAB_ROWS = [
   ['ostensible', 'pernicious', 'sanguine', 'tenacious', 'vicarious', 'capricious', 'fastidious', 'garrulous', 'hegemony'],
   ['insipid', 'juxtapose', 'lugubrious', 'machiavellian', 'nonchalant', 'obfuscate', 'panacea', 'querulous', 'solipsism'],
   ['abdicate', 'bellicose', 'circumlocution', 'discombobulate', 'equivocate', 'facetious', 'grandiloquent', 'harbinger', 'inimical'],
+  ['magniloquent', 'perspicacity', 'lassitude', 'effulgent', 'defenestrate', 'obdurate', 'propitious', 'recondite', 'supercilious'],
+  ['assuage', 'bombastic', 'cacophony', 'didactic', 'effervescent', 'fugacious', 'hubristic', 'impecunious', 'jejune'],
+  ['mendacious', 'nihilistic', 'plethora', 'raconteur', 'soporific', 'truculent', 'umbrage', 'vociferous', 'winsome'],
+  ['alacrity', 'brouhaha', 'cogitate', 'dilettante', 'enervate', 'fatuous', 'gainsay', 'halcyon', 'imbroglio'],
+  ['jocular', 'kismet', 'limpid', 'mordant', 'nadir', 'opprobrious', 'pellucid', 'restive', 'sycophancy'],
 ];
-
-/* ─── book palette ─── */
-const BOOK_COLORS = [
-  { bg: '#ECC8C0', spine: '#D8B0A8', text: '#5C2828' },
-  { bg: '#E2D4C4', spine: '#CEBEAA', text: '#3C3020' },
-  { bg: '#C8D8CC', spine: '#B0C8B4', text: '#1E3428' },
-  { bg: '#D8C8DC', spine: '#C4B0CC', text: '#38244A' },
-  { bg: '#EEDCBC', spine: '#DEC898', text: '#5A3A14' },
-  { bg: '#DCCACC', spine: '#C8B4B8', text: '#462830' },
-  { bg: '#C4CCD8', spine: '#B0BCCC', text: '#2A3040' },
-  { bg: '#CAD8C8', spine: '#B4C8B0', text: '#243820' },
-  { bg: '#E8D8C0', spine: '#D8C4A0', text: '#503C18' },
-  { bg: '#E0C8D0', spine: '#CCAAB8', text: '#4A2438' },
-  { bg: '#C8CED8', spine: '#B4BCCC', text: '#2A3448' },
-  { bg: '#D8D0C4', spine: '#C4BCAC', text: '#3A3428' },
-];
-const BOOK_HEIGHTS = [186, 204, 172, 218, 192, 208, 174, 222, 196, 180, 210, 168];
-
-function getBookColors(id) { return BOOK_COLORS[id % BOOK_COLORS.length]; }
-function getBookHeight(id) { return BOOK_HEIGHTS[id % BOOK_HEIGHTS.length]; }
 
 /* ─── keyframes ─── */
 const fadeUp = keyframes`
@@ -59,25 +45,31 @@ const WAVE_BG = `
 
 /* ─── page ─── */
 const Page = styled.div`
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: auto;
   background: ${WAVE_BG};
 `;
 
 /* ─── integrated pill header ─── */
 const TopBarArea = styled.div`
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   justify-content: center;
-  padding: 24px 28px 0;
+  padding: 20px 28px 0;
+  pointer-events: none;
   animation: ${fadeUp} 0.4s ease both;
-  flex-shrink: 0;
 `;
 
 const TopPill = styled.div`
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   background: rgba(253, 248, 244, 0.70);
@@ -107,6 +99,7 @@ const PillSep = styled.div`
 `;
 
 const PillTitle = styled.div`
+  cursor: pointer;
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.22rem;
   font-weight: 400;
@@ -173,17 +166,61 @@ const PillSignOut = styled.button`
 `;
 
 /* ─── hero ─── */
-const ContentBody = styled.div`
-  flex: 1;
+const HeroSection = styled.div`
+  width: 100%;
+  height: 100vh;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 0 24px 48px;
-  animation: ${fadeUp} 0.5s 0.07s ease both;
   overflow: hidden;
+  flex-shrink: 0;
+`;
+
+const TaglineCenter = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 48px;
+`;
+
+const StartBtn = styled.button`
+  margin-top: 40px;
+  padding: 20px 64px;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, #C4848A 0%, #A86C72 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 36px rgba(160, 80, 80, 0.32);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 7px 0 7px 13px;
+    border-color: transparent transparent transparent rgba(255, 255, 255, 0.88);
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 44px rgba(160, 80, 80, 0.42);
+  }
+  &:active { transform: translateY(0); }
 `;
 
 const WordWall = styled.div`
@@ -257,250 +294,103 @@ const TaglineSub = styled.p`
   letter-spacing: 0.02em;
 `;
 
-/* ─── shelf ─── */
+/* ─── ramen bowl image ─── */
+function PixelBowl({ add = false }) {
+  return (
+    <div style={{ position: 'relative', width: 110, height: 110 }}>
+      <img
+        src={bowlImg}
+        alt=""
+        style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }}
+      />
+      {add && (
+        <span style={{
+          position: 'absolute', top: '42%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '2rem', fontWeight: 700, color: 'rgba(196,132,138,0.7)',
+          lineHeight: 1, pointerEvents: 'none',
+        }}>+</span>
+      )}
+    </div>
+  );
+}
+
+/* ─── bowl grid ─── */
 const ShelfSection = styled.div`
   width: 100%;
-  max-width: 980px;
-  padding: 0 28px;
-  animation: ${fadeUp} 0.55s 0.14s ease both;
-`;
-
-const LibraryLabel = styled.div`
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: rgba(196, 132, 138, 0.42);
-  padding: 0 6px 10px;
-`;
-
-const ShelfWrapper = styled.div`
-  background: linear-gradient(
-    175deg,
-    rgba(255, 253, 251, 0.72) 0%,
-    rgba(250, 243, 238, 0.60) 100%
-  );
-  backdrop-filter: blur(36px) saturate(1.5);
-  -webkit-backdrop-filter: blur(36px) saturate(1.5);
-  border-radius: 28px 28px 0 0;
-  border: 1px solid rgba(255, 250, 247, 0.90);
-  border-bottom: none;
-  padding: 36px 40px 0;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.95),
-    0 16px 56px rgba(160, 80, 80, 0.08),
-    0 6px 20px rgba(0, 0, 0, 0.05);
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 60px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 100%);
-    border-radius: 28px 28px 0 0;
-    pointer-events: none;
-  }
-`;
-
-const BooksRow = styled.div`
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  min-height: 252px;
-  padding: 0 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-`;
-
-const ShelfPlank = styled.div`
-  height: 18px;
-  margin: 0 -40px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 253, 251, 1) 0%,
-    rgba(236, 218, 208, 0.90) 100%
-  );
-  border-top: 1.5px solid rgba(255, 255, 255, 1);
-  box-shadow:
-    0 12px 36px rgba(160, 80, 80, 0.10),
-    0 5px 14px rgba(0, 0, 0, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-`;
-
-/* ─── book ─── */
-const BookSpineWrapper = styled.div`
-  position: relative;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  cursor: pointer;
+  padding-top: 88px;
+  background: rgba(253, 249, 245, 0.96);
+  border-top: 1px solid rgba(196, 132, 138, 0.12);
+`;
 
-  &:hover .spine {
-    transform: translateY(-10px);
-    filter: brightness(1.03);
-    box-shadow:
-      0 14px 24px rgba(0, 0, 0, 0.13),
-      0 4px 10px rgba(0, 0, 0, 0.07),
-      inset 1px 0 0 rgba(255, 255, 255, 0.72),
-      inset 0 1px 0 rgba(255, 255, 255, 0.50);
+const ShelfHeader = styled.div`
+  width: 100%;
+  max-width: 960px;
+  padding: 32px 48px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+`;
+
+const ShelfTitle = styled.h2`
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-style: italic;
+  color: ${p => p.theme.text};
+  letter-spacing: -0.02em;
+`;
+
+const ShelfCount = styled.span`
+  font-size: 0.8rem;
+  color: ${p => p.theme.muted};
+  font-weight: 500;
+`;
+
+const BooksGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 20px 12px;
+  padding: 40px 48px 80px;
+  width: 100%;
+  max-width: 960px;
+`;
+
+const BowlCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 14px 8px;
+  border-radius: 18px;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.15s;
+
+  &:hover {
+    transform: translateY(-6px);
+    background: rgba(196, 132, 138, 0.06);
   }
 `;
 
-const BookSpine = styled.div.attrs({ className: 'spine' })`
-  width: 58px;
-  height: ${p => p.$height}px;
-  background: linear-gradient(
-    90deg,
-    ${p => p.$colors.spine}BB 0px,
-    ${p => p.$colors.spine}EE 5px,
-    ${p => p.$colors.bg}F8 9px,
-    ${p => p.$colors.bg} 48%,
-    ${p => p.$colors.bg}F2 86%,
-    ${p => p.$colors.spine}99 100%
-  );
-  border-radius: 5px 5px 0 0;
-  position: relative;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.28s ease,
-              filter 0.28s ease;
-  box-shadow:
-    0 5px 20px rgba(0, 0, 0, 0.11),
-    inset 1px 0 0 rgba(255, 255, 255, 0.68),
-    inset -1px 0 0 rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-`;
-
-const BookShineTop = styled.div`
-  position: absolute;
-  top: 0; left: 9px; right: 11px;
-  height: 45%;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.44) 0%,
-    rgba(255,255,255,0.12) 55%,
-    rgba(255,255,255,0.00) 100%
-  );
-  border-radius: 0 0 70% 70%;
-  pointer-events: none;
-`;
-
-const BookShineMid = styled.div`
-  position: absolute;
-  top: 28%; bottom: 28%;
-  left: 11px;
-  width: 3px;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.00) 0%,
-    rgba(255,255,255,0.32) 50%,
-    rgba(255,255,255,0.00) 100%
-  );
-  border-radius: 2px;
-  pointer-events: none;
-`;
-
-const BookEdgeGlow = styled.div`
-  position: absolute;
-  top: 8%; bottom: 8%;
-  left: 5px;
-  width: 1.5px;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.00) 0%,
-    rgba(255,255,255,0.50) 40%,
-    rgba(255,255,255,0.50) 60%,
-    rgba(255,255,255,0.00) 100%
-  );
-  border-radius: 1px;
-  pointer-events: none;
-`;
-
-const BookPages = styled.div`
-  position: absolute;
-  right: 0; top: 2px; bottom: 2px;
-  width: 6px;
-  background: repeating-linear-gradient(
-    180deg,
-    #FAF7F2 0px, #FAF7F2 1.5px,
-    #EDE6DA 1.5px, #EDE6DA 2px
-  );
-  border-radius: 0 4px 0 0;
-  opacity: 0.80;
-  box-shadow: inset -1px 0 0 rgba(0,0,0,0.07);
-`;
-
-const SpineTitle = styled.span`
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 0.67rem;
-  font-weight: 800;
-  color: ${p => p.$colors.text};
+const BowlName = styled.div`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${p => p.theme.text};
   text-align: center;
-  max-height: 78%;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: 0.08em;
-  padding: 0 8px;
-  position: relative;
-  z-index: 1;
-  opacity: 0.82;
+  letter-spacing: -0.01em;
 `;
 
-const SpineCount = styled.span`
-  position: absolute;
-  bottom: 8px;
-  left: 0; right: 7px;
-  font-size: 0.52rem;
-  font-weight: 700;
-  color: ${p => p.$colors.text};
-  opacity: 0.42;
-  text-align: center;
-  letter-spacing: 0.04em;
-`;
-
-/* ─── add-book slot ─── */
-const AddBookSlot = styled.div`
-  width: 52px;
-  height: 178px;
-  border-radius: 5px 5px 0 0;
-  border: 1.5px dashed rgba(196, 132, 138, 0.26);
-  background: rgba(196, 132, 138, 0.03);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  gap: 5px;
-  transition: all 0.18s ease;
-  color: rgba(196, 132, 138, 0.44);
-
-  &:hover {
-    border-color: rgba(196, 132, 138, 0.50);
-    background: rgba(196, 132, 138, 0.07);
-    color: rgba(196, 132, 138, 0.76);
-  }
-`;
-
-const AddIcon = styled.div`
-  font-size: 1.5rem;
-  line-height: 1;
-  font-weight: 300;
-`;
-
-const AddLabel = styled.div`
-  font-size: 0.52rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+const AddBowlCard = styled(BowlCard)`
+  opacity: 0.45;
+  &:hover { opacity: 0.85; transform: translateY(-4px); }
 `;
 
 /* ─── component ─── */
@@ -513,6 +403,8 @@ export default function Bookshelf() {
     try { const c = localStorage.getItem(BOOKS_CACHE); return c ? JSON.parse(c) : []; } catch { return []; }
   });
   const [ctx, setCtx] = useState(null);
+  const shelfRef = useRef(null);
+  const pageRef = useRef(null);
 
   const updateBooks = useCallback(updater => {
     setBooks(prev => {
@@ -580,16 +472,19 @@ export default function Bookshelf() {
   };
 
   return (
-    <Page>
+    <Page ref={pageRef}>
       <TopBarArea>
         <TopPill>
           <PillSection>
-            <PillTitle>Ramen Vocab</PillTitle>
+            <PillTitle onClick={() => pageRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>
+              Ramen Vocab
+            </PillTitle>
             <PillEmoji>🍜</PillEmoji>
           </PillSection>
           <PillSep />
           <PillSection>
             <PillNavBtn $active>Bookshelf</PillNavBtn>
+            <PillNavBtn onClick={() => navigate('/collection')}>Collection</PillNavBtn>
             <PillNavBtn onClick={() => navigate('/statistics')}>Statistics</PillNavBtn>
           </PillSection>
           <PillSep />
@@ -600,7 +495,7 @@ export default function Bookshelf() {
         </TopPill>
       </TopBarArea>
 
-      <ContentBody>
+      <HeroSection>
         <WordWall aria-hidden="true">
           {VOCAB_ROWS.map((words, i) => {
             const doubled = [...words, ...words];
@@ -612,46 +507,42 @@ export default function Bookshelf() {
           })}
         </WordWall>
         <ContentFade />
-        <TaglineWrapper>
-          <Tagline>
-            Ready to <HighlightWord>grind</HighlightWord> some vocab?
-          </Tagline>
-          <TaglineSub>add words · study daily · grow your vocabulary</TaglineSub>
-        </TaglineWrapper>
-      </ContentBody>
 
-      <ShelfSection>
-        <LibraryLabel>Your Library</LibraryLabel>
-        <ShelfWrapper>
-          <BooksRow>
-            {books.map(book => {
-              const colors = getBookColors(book.id);
-              const height = getBookHeight(book.id);
-              return (
-                <BookSpineWrapper
-                  key={book.id}
-                  onClick={() => navigate(`/book/${book.id}`, { state: { title: book.title } })}
-                  onContextMenu={e => handleContextMenu(e, book)}
-                  title={book.title}
-                >
-                  <BookSpine $colors={colors} $height={height}>
-                    <BookShineTop />
-                    <BookShineMid />
-                    <BookEdgeGlow />
-                    <SpineTitle $colors={colors}>{book.title}</SpineTitle>
-                    {book.wordCount > 0 && <SpineCount $colors={colors}>{book.wordCount}</SpineCount>}
-                    <BookPages />
-                  </BookSpine>
-                </BookSpineWrapper>
-              );
-            })}
-            <AddBookSlot onClick={handleCreate}>
-              <AddIcon>+</AddIcon>
-              <AddLabel>New</AddLabel>
-            </AddBookSlot>
-          </BooksRow>
-          <ShelfPlank />
-        </ShelfWrapper>
+        <TaglineCenter>
+          <TaglineWrapper>
+            <Tagline>
+              Ready to <HighlightWord>grind</HighlightWord> some vocab?
+            </Tagline>
+            <TaglineSub>add words · study daily · grow your vocabulary</TaglineSub>
+            <StartBtn onClick={() => shelfRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+              Start Cooking 🍜
+            </StartBtn>
+          </TaglineWrapper>
+        </TaglineCenter>
+      </HeroSection>
+
+      <ShelfSection ref={shelfRef}>
+        <ShelfHeader>
+          <ShelfTitle>My Collection</ShelfTitle>
+          <ShelfCount>{books.length} {books.length === 1 ? 'book' : 'books'}</ShelfCount>
+        </ShelfHeader>
+        <BooksGrid>
+          {books.map(book => (
+            <BowlCard
+              key={book.id}
+              onClick={() => navigate(`/book/${book.id}`, { state: { title: book.title } })}
+              onContextMenu={e => handleContextMenu(e, book)}
+              title={book.title}
+            >
+              <PixelBowl />
+              <BowlName>{book.title}</BowlName>
+            </BowlCard>
+          ))}
+          <AddBowlCard onClick={handleCreate}>
+            <PixelBowl add />
+            <BowlName>New Book</BowlName>
+          </AddBowlCard>
+        </BooksGrid>
       </ShelfSection>
 
       {ctx && (

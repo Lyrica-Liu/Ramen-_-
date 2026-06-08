@@ -104,6 +104,7 @@ const WordListTab = styled.button`
 const TabLabel = styled.span`
   writing-mode: vertical-rl;
   transform: rotate(180deg);
+  white-space: nowrap;
   font-size: 0.60rem;
   font-weight: 700;
   letter-spacing: 0.13em;
