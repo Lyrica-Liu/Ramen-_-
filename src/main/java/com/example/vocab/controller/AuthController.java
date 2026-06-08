@@ -65,6 +65,24 @@ public class AuthController {
         }
     }
 
+    public static class GoogleRequest {
+        private String credential;
+        public String getCredential() { return credential; }
+        public void setCredential(String credential) { this.credential = credential; }
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleRequest req) {
+        if (req.getCredential() == null || req.getCredential().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Google credential required"));
+        }
+        try {
+            return ResponseEntity.ok(authService.loginWithGoogle(req.getCredential()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody AuthRequest req) {
         if (req.getEmail() == null || req.getEmail().trim().isEmpty()) {

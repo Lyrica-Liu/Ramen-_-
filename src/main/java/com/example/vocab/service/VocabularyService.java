@@ -131,7 +131,7 @@ public class VocabularyService {
         word.setReviewLevel(1);
         LocalDateTime now = LocalDateTime.now();
         word.setCreatedTime(now);
-        word.setNextReviewTime(now);
+        word.setNextReviewTime(now.plusDays(1));
         word.setLevelProgressDate(now.toLocalDate());
         word.setLevelProgressCount(0);
         word.setDifficultyScore(0);
@@ -151,45 +151,25 @@ public class VocabularyService {
         return stats;
     }
 
+    // SRS intervals in days: level 1→1d, 2→3d, 3→7d, 4→14d, 5→30d, 6→90d
+    private static final int[] SRS_INTERVALS = {1, 3, 7, 14, 30, 90};
+
     public Word updateReview(Long bookId, Long wordId, String result) {
         Word word = wordRepository.findByIdAndBookId(wordId, bookId).orElse(null);
-        if (word == null) {
-            return null;
+        if (word == null) return null;
+
+        int level = word.getReviewLevel() == null ? 1 : Math.max(1, Math.min(6, word.getReviewLevel()));
+
+        if ("correct".equalsIgnoreCase(result)) {
+            level = Math.min(6, level + 1);
         }
-
-        int currentLevel = word.getReviewLevel() == null || word.getReviewLevel() < 1 ? 1 : word.getReviewLevel();
-        int difficultyScore = word.getDifficultyScore() == null ? 0 : word.getDifficultyScore();
-
-        if ("hard".equalsIgnoreCase(result)) {
-            currentLevel = Math.max(1, currentLevel - 1);
-            difficultyScore = Math.min(10, difficultyScore + 1);
-        } else if ("okay".equalsIgnoreCase(result)) {
-            // Okay is a stabilizer: no level change, just reschedule at current level
-        } else if ("easy".equalsIgnoreCase(result)) {
-            LocalDate today = LocalDate.now();
-            LocalDate progressDate = word.getLevelProgressDate();
-            int progressCount = word.getLevelProgressCount() == null ? 0 : word.getLevelProgressCount();
-
-            if (progressDate == null || !progressDate.equals(today)) {
-                progressDate = today;
-                progressCount = 0;
-            }
-
-            if (progressCount < 2 && currentLevel < 6) {
-                currentLevel = currentLevel + 1;
-                progressCount++;
-            }
-
-            word.setLevelProgressDate(progressDate);
-            word.setLevelProgressCount(progressCount);
-            difficultyScore = Math.max(0, difficultyScore - 1);
-        }
+        // incorrect: stay at current level
 
         LocalDateTime now = LocalDateTime.now();
-        word.setReviewLevel(currentLevel);
-        word.setDifficultyScore(difficultyScore);
+        word.setReviewLevel(level);
         word.setLastReviewedTime(now);
-        word.setNextReviewTime(calculateNextReviewTime(now, currentLevel, difficultyScore));
+        word.setNextReviewTime(now.plusDays(SRS_INTERVALS[level - 1]));
+
         Word savedWord = wordRepository.save(word);
         progressService.recordReviewActivity(bookId, 1);
         return savedWord;
@@ -228,26 +208,6 @@ public class VocabularyService {
         }
         wordRepository.saveAll(words);
         return true;
-    }
-
-    private LocalDateTime calculateNextReviewTime(LocalDateTime baseTime, int level, int difficultyScore) {
-        int baseMinutes = switch (level) {
-            case 1 -> 10;
-            case 2 -> 1440;      // 1 day in minutes
-            case 3 -> 4320;      // 3 days
-            case 4 -> 10080;     // 7 days
-            case 5 -> 20160;     // 14 days
-            default -> 43200;    // 30 days
-        };
-
-        // Scale by difficulty: harder words (high score) get longer intervals
-        double scale = 1.0;
-        if (difficultyScore >= 8) scale = 1.5;      // 50% longer for very difficult
-        else if (difficultyScore >= 5) scale = 1.25; // 25% longer for difficult
-        else if (difficultyScore <= 2) scale = 0.7;  // 30% shorter for very easy
-
-        int adjustedMinutes = (int) (baseMinutes * scale);
-        return baseTime.plusMinutes(adjustedMinutes);
     }
 
     public List<Word> getDueWords(Long bookId) {

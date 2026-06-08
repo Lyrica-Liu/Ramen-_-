@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
+import * as api from '../api';
 import styled, { keyframes, css } from 'styled-components';
 
 /* ─── flip animations ─── */
@@ -239,9 +240,14 @@ function buildChoices(studyWords, pos) {
 
 /* ─── component ─── */
 
-export default function StudyMode({ words }) {
+function isDue(word) {
+  if (!word.nextReviewTime) return true;
+  return new Date(word.nextReviewTime) <= new Date();
+}
+
+export default function StudyMode({ words, bookId }) {
   const studyable = useMemo(
-    () => words.filter(w => w.translation?.trim()),
+    () => words.filter(w => w.translation?.trim() && isDue(w)),
     [words],
   );
   const canStudy = studyable.length >= 4;
@@ -285,12 +291,15 @@ export default function StudyMode({ words }) {
     setPhase('playing');
   }, [studyable]);
 
-  function handleChoice(word) {
+  function handleChoice(choice) {
     if (selectedId !== null || anim !== 'idle') return;
-    const correct = word.id === current.id;
-    setSelectedId(word.id);
+    const correct = choice.id === current.id;
+    setSelectedId(choice.id);
     setScore(prev => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
     runFlip(() => setFace('result'), null);
+    if (bookId && current?.id) {
+      api.reviewWord(bookId, current.id, correct ? 'correct' : 'incorrect').catch(() => {});
+    }
   }
 
   function handleNext() {
@@ -319,8 +328,10 @@ export default function StudyMode({ words }) {
       <Wrapper>
         {!canStudy ? (
           <NeedMore>
-            <strong>Add at least 4 words to start Study Mode.</strong>
-            <br />Use the "+ Add Word" tab to build your deck.
+            {studyable.length === 0 && words.filter(w => w.translation?.trim()).length > 0
+              ? <><strong>No words due for review today.</strong><br />Come back later — your next batch is scheduled.</>
+              : <><strong>Add at least 4 words to start Study Mode.</strong><br />Use the &quot;+ Add Word&quot; tab to build your deck.</>
+            }
           </NeedMore>
         ) : (
           <CenterBox>

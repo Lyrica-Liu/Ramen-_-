@@ -3,10 +3,16 @@ package com.example.vocab.service;
 import com.example.vocab.model.User;
 import com.example.vocab.repository.UserRepository;
 import com.example.vocab.security.JwtUtil;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,6 +22,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
@@ -40,6 +49,31 @@ public class AuthService {
         }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         return Map.of("token", token, "email", user.getEmail(), "id", user.getId());
+    }
+
+    public Map<String, Object> loginWithGoogle(String idToken) {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken token;
+        try {
+            token = verifier.verify(idToken);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid Google token");
+        }
+        if (token == null) throw new IllegalArgumentException("Invalid Google token");
+
+        String email = token.getPayload().getEmail().toLowerCase();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            user = new User(email, null);
+            user = userRepository.save(user);
+        }
+
+        String jwt = jwtUtil.generateToken(user.getId(), user.getEmail());
+        return Map.of("token", jwt, "email", user.getEmail(), "id", user.getId());
     }
 
     public Map<String, String> requestPasswordReset(String email) {

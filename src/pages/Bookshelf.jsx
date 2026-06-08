@@ -297,7 +297,7 @@ const TaglineSub = styled.p`
 /* ─── ramen bowl image ─── */
 function PixelBowl({ add = false }) {
   return (
-    <div style={{ position: 'relative', width: 110, height: 110 }}>
+    <div style={{ position: 'relative', width: 150, height: 150 }}>
       <img
         src={bowlImg}
         alt=""
@@ -307,7 +307,7 @@ function PixelBowl({ add = false }) {
         <span style={{
           position: 'absolute', top: '42%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          fontSize: '2rem', fontWeight: 700, color: 'rgba(196,132,138,0.7)',
+          fontSize: '2.4rem', fontWeight: 700, color: 'rgba(196,132,138,0.7)',
           lineHeight: 1, pointerEvents: 'none',
         }}>+</span>
       )}
@@ -323,14 +323,13 @@ const ShelfSection = styled.div`
   flex-direction: column;
   align-items: center;
   padding-top: 88px;
-  background: rgba(253, 249, 245, 0.96);
-  border-top: 1px solid rgba(196, 132, 138, 0.12);
+  padding-bottom: 80px;
 `;
 
 const ShelfHeader = styled.div`
   width: 100%;
-  max-width: 960px;
-  padding: 32px 48px 0;
+  max-width: 900px;
+  padding: 32px 32px 24px;
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -351,13 +350,42 @@ const ShelfCount = styled.span`
   font-weight: 500;
 `;
 
-const BooksGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 20px 12px;
-  padding: 40px 48px 80px;
+const ShelfRows = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
   width: 100%;
-  max-width: 960px;
+  max-width: 900px;
+  padding: 0 32px;
+`;
+
+const ShelfRow = styled.div`
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding-bottom: 18px;
+
+  /* wooden plank */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    right: -8px;
+    height: 18px;
+    background: linear-gradient(180deg,
+      #D4A97A 0%,
+      #C49060 40%,
+      #A87040 70%,
+      #8B5A2A 100%
+    );
+    border-radius: 3px 3px 4px 4px;
+    box-shadow:
+      0 4px 14px rgba(80, 40, 0, 0.28),
+      inset 0 1px 0 rgba(255,220,170,0.45),
+      inset 0 -2px 4px rgba(60,30,0,0.18);
+  }
 `;
 
 const BowlCard = styled.div`
@@ -366,12 +394,12 @@ const BowlCard = styled.div`
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 14px 8px;
+  padding: 14px 8px 10px;
   border-radius: 18px;
   transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.15s;
 
   &:hover {
-    transform: translateY(-6px);
+    transform: translateY(-8px);
     background: rgba(196, 132, 138, 0.06);
   }
 `;
@@ -381,7 +409,7 @@ const BowlName = styled.div`
   font-weight: 600;
   color: ${p => p.theme.text};
   text-align: center;
-  max-width: 110px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -390,7 +418,12 @@ const BowlName = styled.div`
 
 const AddBowlCard = styled(BowlCard)`
   opacity: 0.45;
-  &:hover { opacity: 0.85; transform: translateY(-4px); }
+  &:hover { opacity: 0.85; transform: translateY(-6px); }
+`;
+
+const EmptySlot = styled.div`
+  visibility: hidden;
+  padding: 14px 8px 10px;
 `;
 
 /* ─── component ─── */
@@ -526,23 +559,40 @@ export default function Bookshelf() {
           <ShelfTitle>My Collection</ShelfTitle>
           <ShelfCount>{books.length} {books.length === 1 ? 'book' : 'books'}</ShelfCount>
         </ShelfHeader>
-        <BooksGrid>
-          {books.map(book => (
-            <BowlCard
-              key={book.id}
-              onClick={() => navigate(`/book/${book.id}`, { state: { title: book.title } })}
-              onContextMenu={e => handleContextMenu(e, book)}
-              title={book.title}
-            >
-              <PixelBowl />
-              <BowlName>{book.title}</BowlName>
-            </BowlCard>
-          ))}
-          <AddBowlCard onClick={handleCreate}>
-            <PixelBowl add />
-            <BowlName>New Book</BowlName>
-          </AddBowlCard>
-        </BooksGrid>
+        <ShelfRows>
+          {(() => {
+            const all = [...books, { id: 'add', isAdd: true }];
+            const rows = [];
+            for (let i = 0; i < all.length; i += 4) rows.push(all.slice(i, i + 4));
+            // pad last row to 4
+            const last = rows[rows.length - 1];
+            while (last.length < 4) last.push({ id: `empty-${last.length}`, isEmpty: true });
+            return rows.map((row, ri) => (
+              <ShelfRow key={ri}>
+                {row.map(item =>
+                  item.isEmpty ? (
+                    <EmptySlot key={item.id} />
+                  ) : item.isAdd ? (
+                    <AddBowlCard key="add" onClick={handleCreate}>
+                      <PixelBowl add />
+                      <BowlName>New Book</BowlName>
+                    </AddBowlCard>
+                  ) : (
+                    <BowlCard
+                      key={item.id}
+                      onClick={() => navigate(`/book/${item.id}`, { state: { title: item.title } })}
+                      onContextMenu={e => handleContextMenu(e, item)}
+                      title={item.title}
+                    >
+                      <PixelBowl />
+                      <BowlName>{item.title}</BowlName>
+                    </BowlCard>
+                  )
+                )}
+              </ShelfRow>
+            ));
+          })()}
+        </ShelfRows>
       </ShelfSection>
 
       {ctx && (

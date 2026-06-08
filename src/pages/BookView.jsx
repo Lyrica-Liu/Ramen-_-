@@ -435,7 +435,7 @@ export default function BookView() {
               onPrev={flashPrev}
             />
           )}
-          {activeTab === 'study' && studyTab === 'study' && <StudyMode words={words} />}
+          {activeTab === 'study' && studyTab === 'study' && <StudyMode words={words} bookId={bookId} />}
         </Content>
       </MainArea>
 

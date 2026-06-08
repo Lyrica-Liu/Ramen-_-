@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Page = styled.div`
   min-height: 100vh;
@@ -91,6 +92,44 @@ const ErrorMsg = styled.p`
   margin-bottom: 16px;
 `;
 
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: ${p => p.theme.textSecondary};
+  font-size: 0.82rem;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: ${p => p.theme.border};
+  }
+`;
+
+const GoogleBtn = styled.button`
+  width: 100%;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radiusSm};
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3c4043;
+  transition: box-shadow 0.15s, border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+    border-color: #aaa;
+  }
+  &:disabled { opacity: 0.6; cursor: default; }
+`;
+
 const Footer = styled.p`
   text-align: center;
   font-size: 0.9rem;
@@ -125,6 +164,26 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const handleGoogleSuccess = async ({ credential }) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Google login failed'); return; }
+      login(data.token, data.email);
+      navigate('/');
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
@@ -155,6 +214,16 @@ export default function LoginPage() {
         <Title>Sign In</Title>
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
+
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError('Google sign-in failed. Please try again.')}
+          width="100%"
+          text="signin_with"
+          shape="rectangular"
+        />
+
+        <Divider>or</Divider>
 
         <form onSubmit={handleSubmit}>
           <Label>Email</Label>
