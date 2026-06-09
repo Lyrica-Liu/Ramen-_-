@@ -1,5 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
+
+const cardOut = keyframes`
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+`;
+
+const cardIn = keyframes`
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+`;
 
 /* ─── styled ─── */
 
@@ -35,13 +45,13 @@ const Card = styled.div`
   user-select: none;
   text-align: center;
   box-shadow: ${p => p.theme.shadow};
-  opacity: ${p => p.$visible ? 1 : 0};
-  transform: ${p => p.$visible
-    ? 'scale(1) rotateY(0deg)'
-    : 'scale(0.97) rotateY(5deg)'};
-  transition: opacity 0.17s ease,
-              transform 0.17s ease,
-              box-shadow 0.15s;
+  transition: box-shadow 0.15s;
+
+  animation: ${p => {
+    if (p.$anim === 'out') return css`${cardOut} 0.15s ease forwards`;
+    if (p.$anim === 'in')  return css`${cardIn}  0.15s ease forwards`;
+    return 'none';
+  }};
 
   &:hover {
     box-shadow: ${p => p.theme.shadowLg};
@@ -140,9 +150,9 @@ const HintRow = styled.div`
 /* ─── component ─── */
 
 export default function FlashCards({ word, showBack, position, total, onFlip, onNext, onPrev }) {
-  const [visible, setVisible] = useState(true);
+  const [anim, setAnim] = useState('idle');
   const [displayBack, setDisplayBack] = useState(showBack);
-  const timerRef = useRef();
+  const animRef = useRef();
   const mountedRef = useRef(false);
 
   useEffect(() => {
@@ -150,13 +160,14 @@ export default function FlashCards({ word, showBack, position, total, onFlip, on
       mountedRef.current = true;
       return;
     }
-    clearTimeout(timerRef.current);
-    setVisible(false);
-    timerRef.current = setTimeout(() => {
+    setAnim('out');
+    clearTimeout(animRef.current);
+    animRef.current = setTimeout(() => {
       setDisplayBack(showBack);
-      setVisible(true);
-    }, 170);
-    return () => clearTimeout(timerRef.current);
+      setAnim('in');
+      animRef.current = setTimeout(() => setAnim('idle'), 160);
+    }, 150);
+    return () => clearTimeout(animRef.current);
   }, [showBack, word?.id]);
 
   const hasWords = total > 0 && word != null;
@@ -176,7 +187,7 @@ export default function FlashCards({ word, showBack, position, total, onFlip, on
   return (
     <Wrapper>
       <CardScene>
-        <Card $visible={visible} onClick={onFlip}>
+        <Card $anim={anim} onClick={onFlip}>
           {displayBack ? (
             <>
               <BackLabel>Definition</BackLabel>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bowlImg from '../assets/ramen-bowl.png';
+import bgImg from '../assets/background.png';
 import styled, { keyframes } from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -175,6 +176,7 @@ const HeroSection = styled.div`
   align-items: center;
   overflow: hidden;
   flex-shrink: 0;
+  background: url(${bgImg}) center/cover no-repeat;
 `;
 
 const TaglineCenter = styled.div`
@@ -182,10 +184,10 @@ const TaglineCenter = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   z-index: 1;
-  padding: 0 24px 48px;
+  padding: 13vh 24px 0;
 `;
 
 const StartBtn = styled.button`
@@ -225,10 +227,15 @@ const StartBtn = styled.button`
 
 const WordWall = styled.div`
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: flex-start;
+  gap: 22px;
+  padding: 14px 0 0;
   overflow: hidden;
   pointer-events: none;
 `;
@@ -250,15 +257,6 @@ const WordItem = styled.span`
   padding: 2px 12px;
   letter-spacing: 0.01em;
   user-select: none;
-`;
-
-const ContentFade = styled.div`
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 110px;
-  background: linear-gradient(transparent, rgba(248, 238, 228, 0.60));
-  pointer-events: none;
-  z-index: 0;
 `;
 
 const TaglineWrapper = styled.div`
@@ -283,15 +281,6 @@ const HighlightWord = styled.span`
   color: #7A3A3A;
   background: linear-gradient(transparent 48%, rgba(196, 132, 138, 0.30) 48%);
   padding: 0 4px;
-`;
-
-const TaglineSub = styled.p`
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 0.95rem;
-  font-style: italic;
-  color: #B89090;
-  margin: 16px 0 0;
-  letter-spacing: 0.02em;
 `;
 
 /* ─── ramen bowl image ─── */
@@ -539,14 +528,12 @@ export default function Bookshelf() {
             );
           })}
         </WordWall>
-        <ContentFade />
 
         <TaglineCenter>
           <TaglineWrapper>
             <Tagline>
               Ready to <HighlightWord>grind</HighlightWord> some vocab?
             </Tagline>
-            <TaglineSub>add words · study daily · grow your vocabulary</TaglineSub>
             <StartBtn onClick={() => shelfRef.current?.scrollIntoView({ behavior: 'smooth' })}>
               Start Cooking 🍜
             </StartBtn>

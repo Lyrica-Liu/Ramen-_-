@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
+import studyBg from '../assets/studypage.png';
 import styled from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -14,11 +15,7 @@ const Shell = styled.div`
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 210% 58% at -18% -2%,  rgba(196,132,138,0.26) 0%, transparent 60%),
-    radial-gradient(ellipse 170% 46% at -10% 18%,  rgba(208,145,142,0.17) 0%, transparent 56%),
-    radial-gradient(ellipse 135% 36% at  -3% 35%,  rgba(218,163,155,0.11) 0%, transparent 52%),
-    linear-gradient(162deg, #FAF0E8 0%, #F5E8D4 58%, #F2E0C8 100%);
+  background: url(${studyBg}) center/cover no-repeat;
 `;
 
 const SidePanel = styled.div`
@@ -242,11 +239,11 @@ export default function BookView() {
 
   const [book, setBook] = useState({ title: location.state?.title ?? null });
   const [words, setWords] = useState([]);
-  const [activeTab, setActiveTab] = useState('add');
+  const [activeTab, setActiveTab] = useState('study');
   const [studyTab, setStudyTab] = useState('flash');
   const [listSearch, setListSearch] = useState('');
   const [ctxMenu, setCtxMenu] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const [flashIndex, setFlashIndex] = useState(0);
   const [flashShowBack, setFlashShowBack] = useState(false);
 

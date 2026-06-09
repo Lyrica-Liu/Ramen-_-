@@ -1,17 +1,17 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import * as api from '../api';
 import styled, { keyframes, css } from 'styled-components';
 
 /* ─── flip animations ─── */
 
-const flipOut = keyframes`
-  from { transform: perspective(900px) rotateY(0deg); opacity: 1; }
-  to   { transform: perspective(900px) rotateY(90deg); opacity: 0; }
+const cardOut = keyframes`
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
 `;
 
-const flipIn = keyframes`
-  from { transform: perspective(900px) rotateY(-90deg); opacity: 0; }
-  to   { transform: perspective(900px) rotateY(0deg); opacity: 1; }
+const cardIn = keyframes`
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 `;
 
 /* ─── styled ─── */
@@ -30,7 +30,7 @@ const CenterBox = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 56px 24px;
+  padding: 40px 24px;
   text-align: center;
 `;
 
@@ -46,6 +46,49 @@ const IdleSub = styled.p`
   color: ${p => p.theme.textSecondary};
   max-width: 320px;
   line-height: 1.65;
+`;
+
+const ModeRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 4px;
+`;
+
+const ModeCard = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 22px 20px;
+  background: ${p => p.theme.panel};
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radius};
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-shadow: ${p => p.theme.shadow};
+
+  &:hover {
+    border-color: ${p => p.theme.primary};
+    background: ${p => p.theme.primaryMuted};
+    transform: translateY(-2px);
+    box-shadow: ${p => p.theme.shadowLg};
+  }
+`;
+
+const ModeCardTitle = styled.div`
+  font-size: 0.97rem;
+  font-weight: 800;
+  color: ${p => p.theme.text};
+`;
+
+const ModeCardSub = styled.div`
+  font-size: 0.82rem;
+  color: ${p => p.theme.textSecondary};
+  line-height: 1.5;
 `;
 
 const PillBtn = styled.button`
@@ -64,6 +107,23 @@ const PillBtn = styled.button`
     box-shadow: 0 6px 24px rgba(139, 92, 246, 0.38);
   }
   &:disabled { opacity: 0.45; cursor: default; }
+`;
+
+const OutlineBtn = styled.button`
+  padding: 12px 32px;
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: ${p => p.theme.text};
+  background: ${p => p.theme.panel};
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: ${p => p.theme.borderStrong};
+    background: ${p => p.theme.btnHover};
+  }
 `;
 
 const NeedMore = styled.div`
@@ -105,6 +165,26 @@ const Counter = styled.div`
   white-space: nowrap;
 `;
 
+const QuitBtn = styled.button`
+  padding: 5px 13px;
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: ${p => p.theme.textSecondary};
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.13s ease;
+
+  &:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+  }
+`;
+
 /* the main card */
 const Card = styled.div`
   background: ${p => p.theme.panel};
@@ -117,8 +197,8 @@ const Card = styled.div`
   gap: 22px;
 
   animation: ${p => {
-    if (p.$anim === 'out') return css`${flipOut} 0.22s ease forwards`;
-    if (p.$anim === 'in')  return css`${flipIn}  0.22s ease forwards`;
+    if (p.$anim === 'out') return css`${cardOut} 0.15s ease forwards`;
+    if (p.$anim === 'in')  return css`${cardIn}  0.15s ease forwards`;
     return 'none';
   }};
 `;
@@ -167,6 +247,51 @@ const ChoiceBtn = styled.button`
     color: ${p => p.theme.primary};
   }
   &:active:not(:disabled) { transform: translateY(0); }
+`;
+
+/* grind mode */
+const GrindRow = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const GrindInput = styled.input`
+  flex: 1;
+  padding: 14px 16px;
+  border: 1.5px solid ${p => p.theme.border};
+  border-radius: ${p => p.theme.radiusSm};
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+
+  &:focus {
+    border-color: ${p => p.theme.primary};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    background: ${p => p.theme.btnBg};
+    cursor: default;
+  }
+`;
+
+const GrindCheckBtn = styled.button`
+  padding: 14px 24px;
+  background: linear-gradient(135deg, ${p => p.theme.primary} 0%, ${p => p.theme.primaryStrong} 100%);
+  color: #fff;
+  border: none;
+  border-radius: ${p => p.theme.radiusSm};
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: ${p => p.theme.shadowPrimary};
+  }
+  &:disabled { opacity: 0.4; cursor: default; }
 `;
 
 /* back face */
@@ -220,6 +345,13 @@ const ScoreNum = styled.div`
   color: ${p => (p.$pct >= 70 ? p.theme.correctText : p.$pct >= 50 ? p.theme.okayText : p.theme.wrongText)};
 `;
 const ScoreSub = styled(IdleSub)``;
+const ScoreBtns = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
 
 /* ─── helpers ─── */
 
@@ -240,28 +372,27 @@ function buildChoices(studyWords, pos) {
 
 /* ─── component ─── */
 
-function isDue(word) {
-  if (!word.nextReviewTime) return true;
-  return new Date(word.nextReviewTime) <= new Date();
-}
-
 export default function StudyMode({ words, bookId }) {
   const studyable = useMemo(
-    () => words.filter(w => w.translation?.trim() && isDue(w)),
+    () => words.filter(w => w.translation?.trim()),
     [words],
   );
   const canStudy = studyable.length >= 4;
 
+  const [studyMode, setStudyMode] = useState('normal'); // 'normal' | 'grind'
   const [phase, setPhase] = useState('idle');
   const [studyWords, setStudyWords] = useState([]);
   const [pos, setPos] = useState(0);
   const [choices, setChoices] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [anim, setAnim] = useState('idle'); // idle | out | in
-  const [face, setFace] = useState('question'); // question | result
+  const [anim, setAnim] = useState('idle');
+  const [face, setFace] = useState('question');
 
+  const [grindInput, setGrindInput] = useState('');
+  const grindInputRef = useRef(null);
   const animRef = useRef(null);
+  const handleNextRef = useRef(null);
 
   const current = studyWords[pos] ?? null;
   const isCorrect = selectedId !== null && selectedId === current?.id;
@@ -275,26 +406,66 @@ export default function StudyMode({ words, bookId }) {
       animRef.current = setTimeout(() => {
         setAnim('idle');
         onDone?.();
-      }, 230);
-    }, 220);
+      }, 160);
+    }, 150);
   }
 
-  const startStudy = useCallback(() => {
+  const startStudy = useCallback((mode) => {
+    setStudyMode(mode);
     const sq = shuffle(studyable);
     setStudyWords(sq);
     setPos(0);
-    setChoices(buildChoices(sq, 0));
+    if (mode === 'normal') setChoices(buildChoices(sq, 0));
     setSelectedId(null);
     setFace('question');
     setAnim('idle');
     setScore({ correct: 0, total: 0 });
+    setGrindInput('');
     setPhase('playing');
   }, [studyable]);
+
+  function handleQuit() {
+    clearTimeout(animRef.current);
+    setPhase('idle');
+  }
+
+  /* auto-focus grind input on question face */
+  useEffect(() => {
+    if (studyMode === 'grind' && face === 'question' && phase === 'playing') {
+      const t = setTimeout(() => grindInputRef.current?.focus(), 260);
+      return () => clearTimeout(t);
+    }
+  }, [studyMode, face, phase, pos]);
+
+  /* Enter key advances from result face */
+  useEffect(() => {
+    if (phase !== 'playing' || face !== 'result') return;
+    const handler = e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      handleNextRef.current?.();
+    };
+    document.addEventListener('keydown', handler, true);
+    return () => document.removeEventListener('keydown', handler, true);
+  }, [phase, face]);
 
   function handleChoice(choice) {
     if (selectedId !== null || anim !== 'idle') return;
     const correct = choice.id === current.id;
     setSelectedId(choice.id);
+    setScore(prev => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
+    runFlip(() => setFace('result'), null);
+    if (bookId && current?.id) {
+      api.reviewWord(bookId, current.id, correct ? 'correct' : 'incorrect').catch(() => {});
+    }
+  }
+
+  function handleGrindCheck() {
+    if (!grindInput.trim() || face !== 'question' || anim !== 'idle') return;
+    const correct = grindInput.trim().toLowerCase() === current.term.toLowerCase();
+    setGrindInput('');
+    setSelectedId(correct ? current.id : '__wrong__');
     setScore(prev => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
     runFlip(() => setFace('result'), null);
     if (bookId && current?.id) {
@@ -310,12 +481,15 @@ export default function StudyMode({ words, bookId }) {
         setPhase('complete');
       } else {
         setPos(next);
-        setChoices(buildChoices(studyWords, next));
+        if (studyMode === 'normal') setChoices(buildChoices(studyWords, next));
         setSelectedId(null);
         setFace('question');
+        setGrindInput('');
       }
     }, null);
   }
+
+  handleNextRef.current = handleNext;
 
   const progressPct = studyWords.length > 0
     ? Math.round(((pos + (face === 'result' ? 1 : 0)) / studyWords.length) * 100)
@@ -328,19 +502,23 @@ export default function StudyMode({ words, bookId }) {
       <Wrapper>
         {!canStudy ? (
           <NeedMore>
-            {studyable.length === 0 && words.filter(w => w.translation?.trim()).length > 0
-              ? <><strong>No words due for review today.</strong><br />Come back later — your next batch is scheduled.</>
-              : <><strong>Add at least 4 words to start Study Mode.</strong><br />Use the &quot;+ Add Word&quot; tab to build your deck.</>
-            }
+            <strong>Add at least 4 words to start Study Mode.</strong>
+            <br />Use the &quot;+ Add Word&quot; tab to build your deck.
           </NeedMore>
         ) : (
           <CenterBox>
             <IdleTitle>Study Mode</IdleTitle>
-            <IdleSub>
-              See a definition — pick the right word from 4 choices.
-              {' '}{studyable.length} cards ready.
-            </IdleSub>
-            <PillBtn onClick={startStudy}>Start Session</PillBtn>
+            <IdleSub>{studyable.length} cards ready. Pick a mode to begin.</IdleSub>
+            <ModeRow>
+              <ModeCard onClick={() => startStudy('normal')}>
+                <ModeCardTitle>Normal Mode</ModeCardTitle>
+                <ModeCardSub>See a definition and pick the right word from 4 choices.</ModeCardSub>
+              </ModeCard>
+              <ModeCard onClick={() => startStudy('grind')}>
+                <ModeCardTitle>Grind Mode</ModeCardTitle>
+                <ModeCardSub>See a definition and type the answer from memory.</ModeCardSub>
+              </ModeCard>
+            </ModeRow>
           </CenterBox>
         )}
       </Wrapper>
@@ -356,7 +534,10 @@ export default function StudyMode({ words, bookId }) {
           <ScoreTitle>Session Complete</ScoreTitle>
           <ScoreNum $pct={scorePct}>{scorePct}%</ScoreNum>
           <ScoreSub>{score.correct} / {score.total} correct — {msg}</ScoreSub>
-          <PillBtn onClick={startStudy}>Study Again</PillBtn>
+          <ScoreBtns>
+            <OutlineBtn onClick={() => setPhase('idle')}>Change Mode</OutlineBtn>
+            <PillBtn onClick={() => startStudy(studyMode)}>Study Again</PillBtn>
+          </ScoreBtns>
         </ScoreBox>
       </Wrapper>
     );
@@ -368,24 +549,47 @@ export default function StudyMode({ words, bookId }) {
       <ProgressRow>
         <Track><Fill $pct={progressPct} /></Track>
         <Counter>{pos + 1} / {studyWords.length}</Counter>
+        <QuitBtn onClick={handleQuit}>Quit</QuitBtn>
       </ProgressRow>
 
       <Card $anim={anim}>
         {face === 'question' ? (
           <>
-            <QLabel>Which word matches this definition?</QLabel>
+            <QLabel>
+              {studyMode === 'grind' ? 'Type the word for this definition' : 'Which word matches this definition?'}
+            </QLabel>
             <DefText>{current?.translation ?? ''}</DefText>
-            <ChoicesGrid>
-              {choices.map(choice => (
-                <ChoiceBtn
-                  key={choice.id}
-                  onClick={() => handleChoice(choice)}
-                  disabled={selectedId !== null || anim !== 'idle'}
+            {studyMode === 'normal' ? (
+              <ChoicesGrid>
+                {choices.map(choice => (
+                  <ChoiceBtn
+                    key={choice.id}
+                    onClick={() => handleChoice(choice)}
+                    disabled={selectedId !== null || anim !== 'idle'}
+                  >
+                    {choice.term}
+                  </ChoiceBtn>
+                ))}
+              </ChoicesGrid>
+            ) : (
+              <GrindRow>
+                <GrindInput
+                  ref={grindInputRef}
+                  type="text"
+                  placeholder="Type the word…"
+                  value={grindInput}
+                  disabled={anim !== 'idle'}
+                  onChange={e => setGrindInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleGrindCheck(); } }}
+                />
+                <GrindCheckBtn
+                  disabled={!grindInput.trim() || anim !== 'idle'}
+                  onClick={handleGrindCheck}
                 >
-                  {choice.term}
-                </ChoiceBtn>
-              ))}
-            </ChoicesGrid>
+                  Check
+                </GrindCheckBtn>
+              </GrindRow>
+            )}
           </>
         ) : (
           <>
