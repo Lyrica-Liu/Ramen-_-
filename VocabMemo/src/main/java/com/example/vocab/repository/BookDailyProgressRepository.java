@@ -12,5 +12,6 @@ public interface BookDailyProgressRepository extends JpaRepository<BookDailyProg
     List<BookDailyProgress> findByBookIdAndActivityDateBetweenOrderByActivityDateAsc(Long bookId, LocalDate startDate, LocalDate endDate);
     List<BookDailyProgress> findByBookIdOrderByActivityDateDesc(Long bookId);
     List<BookDailyProgress> findAllByOrderByActivityDateDesc();
+    List<BookDailyProgress> findByActivityDateBetweenOrderByActivityDateAsc(LocalDate startDate, LocalDate endDate);
     void deleteByBookId(Long bookId);
 }

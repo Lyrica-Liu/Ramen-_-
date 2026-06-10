@@ -121,6 +121,24 @@ export async function fetchProgress(bookId) {
   return res.json();
 }
 
+export async function fetchGlobalStats(days = 365) {
+  const res = await fetch(`${BASE}/api/stats?days=${days}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch stats');
+  return res.json();
+}
+
+export async function fetchBookStats(bookId) {
+  const res = await fetch(`${BASE}/api/books/${bookId}/words/book-stats`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch book stats');
+  return res.json();
+}
+
+export async function fetchBookDailyProgress(bookId, days = 30) {
+  const res = await fetch(`${BASE}/api/books/${bookId}/words/stats/daily?days=${days}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch book progress');
+  return res.json();
+}
+
 export async function recordActivity(bookId, type, amount = 1, wordId = null) {
   const res = await fetch(`${BASE}/api/books/${bookId}/words/progress/activity`, {
     method: 'POST',

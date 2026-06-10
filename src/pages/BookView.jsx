@@ -8,6 +8,7 @@ import VocabList from '../components/VocabList';
 import AddWordPanel from '../components/AddWordPanel';
 import FlashCards from '../components/FlashCards';
 import StudyMode from '../components/StudyMode';
+import BookStatsPanel from '../components/BookStatsPanel';
 
 /* ─── shell layout ─── */
 
@@ -285,6 +286,7 @@ export default function BookView() {
     setStudyTab(tab);
     setActiveTab('study');
     setFlashShowBack(false);
+    if (tab === 'study') setDrawerOpen(false);
   }
 
   function flashNext() {
@@ -414,6 +416,12 @@ export default function BookView() {
             >
               Study Mode
             </ToggleOption>
+            <ToggleOption
+              $active={activeTab === 'study' && studyTab === 'stats'}
+              onClick={() => switchToStudy('stats')}
+            >
+              Stats
+            </ToggleOption>
           </ToggleTrack>
         </NavBar>
 
@@ -433,6 +441,9 @@ export default function BookView() {
             />
           )}
           {activeTab === 'study' && studyTab === 'study' && <StudyMode words={words} bookId={bookId} />}
+          {activeTab === 'study' && studyTab === 'stats' && (
+            <BookStatsPanel bookId={bookId} totalWords={words.length} />
+          )}
         </Content>
       </MainArea>
 

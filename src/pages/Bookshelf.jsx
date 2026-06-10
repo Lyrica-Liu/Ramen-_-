@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bowlImg from '../assets/ramen-bowl.png';
 import bgImg from '../assets/background.png';
+import shelfBg from '../assets/bookshelf.png';
 import styled, { keyframes } from 'styled-components';
 import * as api from '../api';
 import ContextMenu from '../components/ContextMenu';
@@ -191,10 +192,10 @@ const TaglineCenter = styled.div`
 `;
 
 const StartBtn = styled.button`
-  margin-top: 40px;
-  padding: 20px 64px;
+  margin-top: 24px;
+  padding: 15px 50px;
   border-radius: 999px;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   background: linear-gradient(135deg, #C4848A 0%, #A86C72 100%);
@@ -286,17 +287,18 @@ const HighlightWord = styled.span`
 /* ─── ramen bowl image ─── */
 function PixelBowl({ add = false }) {
   return (
-    <div style={{ position: 'relative', width: 150, height: 150 }}>
+    <div style={{ position: 'relative', width: 194, height: 194 }}>
       <img
         src={bowlImg}
         alt=""
-        style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }}
+        style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated',
+          filter: 'drop-shadow(0 6px 16px rgba(60,30,0,0.42))' }}
       />
       {add && (
         <span style={{
           position: 'absolute', top: '42%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          fontSize: '2.4rem', fontWeight: 700, color: 'rgba(196,132,138,0.7)',
+          fontSize: '3.2rem', fontWeight: 700, color: 'rgba(196,132,138,0.8)',
           lineHeight: 1, pointerEvents: 'none',
         }}>+</span>
       )}
@@ -304,115 +306,77 @@ function PixelBowl({ add = false }) {
   );
 }
 
-/* ─── bowl grid ─── */
+/* ─── shelf section — bookshelf photo with overlaid bowls ─── */
 const ShelfSection = styled.div`
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 88px;
-  padding-bottom: 80px;
-`;
-
-const ShelfHeader = styled.div`
-  width: 100%;
-  max-width: 900px;
-  padding: 32px 32px 24px;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-`;
-
-const ShelfTitle = styled.h2`
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-style: italic;
-  color: ${p => p.theme.text};
-  letter-spacing: -0.02em;
-`;
-
-const ShelfCount = styled.span`
-  font-size: 0.8rem;
-  color: ${p => p.theme.muted};
-  font-weight: 500;
-`;
-
-const ShelfRows = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 48px;
-  width: 100%;
-  max-width: 900px;
-  padding: 0 32px;
-`;
-
-const ShelfRow = styled.div`
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding-bottom: 18px;
+  width: 100%;
+  flex-shrink: 0;
+  background: #3D1F0A;
+`;
 
-  /* wooden plank */
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: -8px;
-    right: -8px;
-    height: 18px;
-    background: linear-gradient(180deg,
-      #D4A97A 0%,
-      #C49060 40%,
-      #A87040 70%,
-      #8B5A2A 100%
-    );
-    border-radius: 3px 3px 4px 4px;
-    box-shadow:
-      0 4px 14px rgba(80, 40, 0, 0.28),
-      inset 0 1px 0 rgba(255,220,170,0.45),
-      inset 0 -2px 4px rgba(60,30,0,0.18);
-  }
+const ShelfImg = styled.img`
+  width: 100%;
+  display: block;
+`;
+
+/* Rows of bowls sitting on each shelf board */
+const BowlRow = styled.div`
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  align-items: flex-end;
+  bottom: ${p => p.$bottom};
+`;
+
+/* Names rendered on the shelf board itself */
+const NameRow = styled.div`
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  align-items: center;
+  bottom: ${p => p.$bottom};
+  pointer-events: none;
+`;
+
+const ShelfLabel = styled.div`
+  width: 194px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.55);
 `;
 
 const BowlCard = styled.div`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   cursor: pointer;
-  padding: 14px 8px 10px;
-  border-radius: 18px;
-  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.15s;
+  flex: 0 0 auto;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
 
-  &:hover {
-    transform: translateY(-8px);
-    background: rgba(196, 132, 138, 0.06);
-  }
-`;
-
-const BowlName = styled.div`
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: ${p => p.theme.text};
-  text-align: center;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
+  &:hover { transform: translateY(-12px); }
 `;
 
 const AddBowlCard = styled(BowlCard)`
-  opacity: 0.45;
-  &:hover { opacity: 0.85; transform: translateY(-6px); }
+  opacity: 0.5;
+  &:hover { opacity: 0.9; transform: translateY(-10px); }
 `;
 
 const EmptySlot = styled.div`
+  flex: 0 0 auto;
+  width: 194px;
   visibility: hidden;
-  padding: 14px 8px 10px;
 `;
 
 /* ─── component ─── */
@@ -437,8 +401,9 @@ export default function Bookshelf() {
   }, []);
 
   const loadBooks = useCallback(async () => {
+    if (!auth) return;
     try { updateBooks(await api.fetchBooks()); } catch (e) { console.error(e); }
-  }, [updateBooks]);
+  }, [updateBooks, auth]);
 
   useEffect(() => { loadBooks(); }, [loadBooks]);
 
@@ -456,6 +421,7 @@ export default function Bookshelf() {
   }, []);
 
   const handleCreate = async () => {
+    if (!auth) { navigate('/login'); return; }
     const title = prompt('New vocabulary book name:');
     if (!title?.trim()) return;
     try {
@@ -511,8 +477,14 @@ export default function Bookshelf() {
           </PillSection>
           <PillSep />
           <PillSection>
-            <PillEmail>{auth?.email}</PillEmail>
-            <PillSignOut onClick={() => { logout(); navigate('/login'); }}>Sign Out</PillSignOut>
+            {auth ? (
+              <>
+                <PillEmail>{auth.email}</PillEmail>
+                <PillSignOut onClick={() => { logout(); }}>Sign Out</PillSignOut>
+              </>
+            ) : (
+              <PillSignOut onClick={() => navigate('/login')}>Sign In</PillSignOut>
+            )}
           </PillSection>
         </TopPill>
       </TopBarArea>
@@ -542,27 +514,33 @@ export default function Bookshelf() {
       </HeroSection>
 
       <ShelfSection ref={shelfRef}>
-        <ShelfHeader>
-          <ShelfTitle>My Collection</ShelfTitle>
-          <ShelfCount>{books.length} {books.length === 1 ? 'book' : 'books'}</ShelfCount>
-        </ShelfHeader>
-        <ShelfRows>
-          {(() => {
-            const all = [...books, { id: 'add', isAdd: true }];
-            const rows = [];
-            for (let i = 0; i < all.length; i += 4) rows.push(all.slice(i, i + 4));
-            // pad last row to 4
-            const last = rows[rows.length - 1];
-            while (last.length < 4) last.push({ id: `empty-${last.length}`, isEmpty: true });
-            return rows.map((row, ri) => (
-              <ShelfRow key={ri}>
+        <ShelfImg src={shelfBg} alt="" draggable={false} />
+        {(() => {
+          // Image 1536×1024: outer frame ~6%, each board ~3% of height.
+          // Board 1: 33–36% from top  →  bottom: 64–67%
+          // Board 2: 63–66% from top  →  bottom: 34–37%
+          // Bottom frame: 93–100%     →  bottom: 0–7%
+          const ROWS = [
+            { bowlBottom: '62%', nameBottom: '60%' },  // row 1 → board 1
+            { bowlBottom: '37%', nameBottom: '35%' },  // row 2 → board 2
+            { bowlBottom: '7%',  nameBottom: '4.5%' }, // row 3 → bottom frame
+          ];
+          const PER_ROW = 4;
+          const slots = [...books.slice(0, ROWS.length * PER_ROW - 1), { id: 'add', isAdd: true }];
+          const rows = ROWS.map(({ bowlBottom, nameBottom }, ri) => {
+            const row = slots.slice(ri * PER_ROW, (ri + 1) * PER_ROW);
+            while (row.length < PER_ROW) row.push({ id: `e-${ri}-${row.length}`, isEmpty: true });
+            return { bowlBottom, nameBottom, row };
+          });
+          return rows.map(({ bowlBottom, nameBottom, row }, ri) => (
+            <>
+              <BowlRow key={`br-${ri}`} $bottom={bowlBottom}>
                 {row.map(item =>
                   item.isEmpty ? (
                     <EmptySlot key={item.id} />
                   ) : item.isAdd ? (
-                    <AddBowlCard key="add" onClick={handleCreate}>
+                    <AddBowlCard key="add" onClick={handleCreate} title="Add new book">
                       <PixelBowl add />
-                      <BowlName>New Book</BowlName>
                     </AddBowlCard>
                   ) : (
                     <BowlCard
@@ -572,14 +550,20 @@ export default function Bookshelf() {
                       title={item.title}
                     >
                       <PixelBowl />
-                      <BowlName>{item.title}</BowlName>
                     </BowlCard>
                   )
                 )}
-              </ShelfRow>
-            ));
-          })()}
-        </ShelfRows>
+              </BowlRow>
+              <NameRow key={`nr-${ri}`} $bottom={nameBottom}>
+                {row.map(item => (
+                  <ShelfLabel key={item.id ?? 'add-lbl'}>
+                    {item.isEmpty ? '' : item.isAdd ? 'New Book' : item.title}
+                  </ShelfLabel>
+                ))}
+              </NameRow>
+            </>
+          ));
+        })()}
       </ShelfSection>
 
       {ctx && (

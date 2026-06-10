@@ -6,11 +6,11 @@ import styled, { keyframes, css } from 'styled-components';
 
 const cardOut = keyframes`
   from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 0; transform: scale(0.97); }
 `;
 
 const cardIn = keyframes`
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
 `;
 
@@ -197,8 +197,8 @@ const Card = styled.div`
   gap: 22px;
 
   animation: ${p => {
-    if (p.$anim === 'out') return css`${cardOut} 0.15s ease forwards`;
-    if (p.$anim === 'in')  return css`${cardIn}  0.15s ease forwards`;
+    if (p.$anim === 'out') return css`${cardOut} 0.10s ease-in  forwards`;
+    if (p.$anim === 'in')  return css`${cardIn}  0.11s ease-out forwards`;
     return 'none';
   }};
 `;
@@ -406,8 +406,8 @@ export default function StudyMode({ words, bookId }) {
       animRef.current = setTimeout(() => {
         setAnim('idle');
         onDone?.();
-      }, 160);
-    }, 150);
+      }, 110);
+    }, 100);
   }
 
   const startStudy = useCallback((mode) => {

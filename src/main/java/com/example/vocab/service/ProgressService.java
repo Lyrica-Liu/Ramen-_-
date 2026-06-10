@@ -8,10 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class ProgressService {
@@ -69,6 +72,53 @@ public class ProgressService {
         public int getAddedCount() {
             return addedCount;
         }
+    }
+
+    public static class BookStats {
+        private final int daysStudied;
+        private final int currentStreak;
+        private final int longestStreak;
+
+        public BookStats(int daysStudied, int currentStreak, int longestStreak) {
+            this.daysStudied = daysStudied;
+            this.currentStreak = currentStreak;
+            this.longestStreak = longestStreak;
+        }
+
+        public int getDaysStudied()   { return daysStudied; }
+        public int getCurrentStreak() { return currentStreak; }
+        public int getLongestStreak() { return longestStreak; }
+    }
+
+    public BookStats getBookStats(Long bookId) {
+        List<BookDailyProgress> entries = progressRepository.findByBookIdOrderByActivityDateDesc(bookId);
+
+        Set<LocalDate> studiedDates = new HashSet<>();
+        for (BookDailyProgress e : entries) {
+            if (e.hasStudyActivity()) studiedDates.add(e.getActivityDate());
+        }
+
+        int daysStudied = studiedDates.size();
+        int currentStreak = calculateCurrentStreak(bookId);
+
+        int longestStreak = 0;
+        if (!studiedDates.isEmpty()) {
+            LocalDate minDate = studiedDates.stream().min(Comparator.naturalOrder()).orElseThrow();
+            LocalDate today = LocalDate.now();
+            int cur = 0;
+            LocalDate cursor = minDate;
+            while (!cursor.isAfter(today)) {
+                if (studiedDates.contains(cursor)) {
+                    cur++;
+                    if (cur > longestStreak) longestStreak = cur;
+                } else {
+                    cur = 0;
+                }
+                cursor = cursor.plusDays(1);
+            }
+        }
+
+        return new BookStats(daysStudied, currentStreak, longestStreak);
     }
 
     public ProgressHeader getHeader(Long bookId) {

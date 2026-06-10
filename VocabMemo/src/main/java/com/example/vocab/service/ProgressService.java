@@ -8,10 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class ProgressService {
@@ -133,6 +136,59 @@ public class ProgressService {
 
     public void clearProgress(Long bookId) {
         progressRepository.deleteByBookId(bookId);
+    }
+
+    public int getCurrentStreak() {
+        return calculateCurrentStreak();
+    }
+
+    public int getLongestStreak() {
+        List<BookDailyProgress> allProgress = progressRepository.findAllByOrderByActivityDateDesc();
+        Set<LocalDate> studiedDates = new HashSet<>();
+        for (BookDailyProgress entry : allProgress) {
+            if (entry.hasStudyActivity()) studiedDates.add(entry.getActivityDate());
+        }
+        if (studiedDates.isEmpty()) return 0;
+
+        LocalDate minDate = studiedDates.stream().min(Comparator.naturalOrder()).get();
+        LocalDate today = LocalDate.now();
+        int longest = 0, current = 0;
+        LocalDate cursor = minDate;
+        while (!cursor.isAfter(today)) {
+            if (studiedDates.contains(cursor)) {
+                current++;
+                if (current > longest) longest = current;
+            } else {
+                current = 0;
+            }
+            cursor = cursor.plusDays(1);
+        }
+        return longest;
+    }
+
+    public List<DailyProgressSummary> getGlobalDailyProgress(int days) {
+        int safeDays = Math.max(1, Math.min(days, 365));
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(safeDays - 1L);
+
+        List<BookDailyProgress> entries = progressRepository.findByActivityDateBetweenOrderByActivityDateAsc(startDate, today);
+
+        Map<LocalDate, DailyProgressAccumulator> map = new LinkedHashMap<>();
+        for (int offset = safeDays - 1; offset >= 0; offset--) {
+            map.put(today.minusDays(offset), new DailyProgressAccumulator());
+        }
+        for (BookDailyProgress entry : entries) {
+            DailyProgressAccumulator acc = map.get(entry.getActivityDate());
+            if (acc == null) continue;
+            acc.addedCount   += entry.getAddedCount()    == null ? 0 : entry.getAddedCount();
+            acc.reviewedCount += entry.getReviewedCount() == null ? 0 : entry.getReviewedCount();
+        }
+
+        List<DailyProgressSummary> result = new ArrayList<>();
+        for (Map.Entry<LocalDate, DailyProgressAccumulator> e : map.entrySet()) {
+            result.add(new DailyProgressSummary(e.getKey().toString(), e.getValue().reviewedCount, e.getValue().addedCount));
+        }
+        return result;
     }
 
     private int calculateCurrentStreak() {

@@ -3,11 +3,11 @@ import styled, { keyframes, css } from 'styled-components';
 
 const cardOut = keyframes`
   from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 0; transform: scale(0.97); }
 `;
 
 const cardIn = keyframes`
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
 `;
 
@@ -48,8 +48,8 @@ const Card = styled.div`
   transition: box-shadow 0.15s;
 
   animation: ${p => {
-    if (p.$anim === 'out') return css`${cardOut} 0.15s ease forwards`;
-    if (p.$anim === 'in')  return css`${cardIn}  0.15s ease forwards`;
+    if (p.$anim === 'out') return css`${cardOut} 0.10s ease-in  forwards`;
+    if (p.$anim === 'in')  return css`${cardIn}  0.11s ease-out forwards`;
     return 'none';
   }};
 
@@ -153,20 +153,22 @@ export default function FlashCards({ word, showBack, position, total, onFlip, on
   const [anim, setAnim] = useState('idle');
   const [displayBack, setDisplayBack] = useState(showBack);
   const animRef = useRef();
-  const mountedRef = useRef(false);
+  // Store previous props so we only animate on genuine changes, not on mount/remount
+  const prevRef = useRef({ showBack, wordId: word?.id });
 
   useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      return;
-    }
-    setAnim('out');
+    const prev = prevRef.current;
+    const curr = { showBack, wordId: word?.id };
+    if (prev.showBack === curr.showBack && prev.wordId === curr.wordId) return;
+    prevRef.current = curr;
+
     clearTimeout(animRef.current);
+    setAnim('out');
     animRef.current = setTimeout(() => {
       setDisplayBack(showBack);
       setAnim('in');
-      animRef.current = setTimeout(() => setAnim('idle'), 160);
-    }, 150);
+      animRef.current = setTimeout(() => setAnim('idle'), 110);
+    }, 100);
     return () => clearTimeout(animRef.current);
   }, [showBack, word?.id]);
 

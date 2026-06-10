@@ -205,6 +205,11 @@ public class VocabularyController {
         return ResponseEntity.badRequest().build();
     }
 
+    @GetMapping("/book-stats")
+    public ResponseEntity<ProgressService.BookStats> getBookStats(@PathVariable("bookId") Long bookId) {
+        return ResponseEntity.ok(progressService.getBookStats(bookId));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<WordSearchService.AllMeaningsResult> searchWord(@RequestParam("term") String term) {
         if (term == null || term.trim().isEmpty()) {
